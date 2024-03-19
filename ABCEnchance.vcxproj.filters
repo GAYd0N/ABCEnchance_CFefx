@@ -707,6 +707,9 @@
     <ClCompile Include="src\Source\steamrichpresence.cpp">
       <Filter>Public\Source</Filter>
     </ClCompile>
+    <ClCompile Include="src\Source\HUD\vgui\cfefx.cpp">
+      <Filter>Public\Source\HUD\vgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourceSDK\Color.h">
@@ -1521,6 +1524,9 @@
     </ClInclude>
     <ClInclude Include="src\Header\steamrichpresence.h">
       <Filter>Public\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Header\HUD\vgui\cfefx.h">
+      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

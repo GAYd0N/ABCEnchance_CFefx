@@ -1,0 +1,116 @@
+// sample animation script
+//
+//
+// commands:
+//	Animate <panel name> <variable> <target value> <interpolator> <start time> <duration>
+//		variables:
+//			FgColor
+//			BgColor
+//			Position
+//			Size
+//			Blur		(hud panels only)
+//			TextColor	(hud panels only)
+//			Ammo2Color	(hud panels only)
+//			Alpha		(hud weapon selection only)
+//			SelectionAlpha  (hud weapon selection only)
+//			TextScan	(hud weapon selection only)
+//
+//		interpolator:
+//			Linear
+//			Accel - starts moving slow  ends fast
+//			Deaccel - starts moving fast  ends slow
+//
+//	RunEvent <event name> <start time>
+//		starts another even running at the specified time
+//
+//	StopEvent <event name> <start time>
+//		stops another event that is current running at the specified time
+//
+//	StopAnimation <panel name> <variable> <start time>
+//		stops all animations refering to the specified variable in the specified panel
+//
+//	StopPanelAnimations <panel name> <start time>
+//		stops all active animations operating on the specified panel
+//
+//
+// Useful game console commands:
+//	cl_Animationinfo <hudelement name> or <panelname> 
+//		displays all the animatable variables for the hud element
+//
+event StarFiveAnim
+{
+    Animate StarFive Alpha "0" Linear 0 0
+    Animate StarFive Position "417 230" Linear 0 0
+    Animate StarFive Size "20 20" Linear 0 0
+
+    Animate StarFive Alpha "200" Linear 0 0.05
+    Animate StarFive Position "650 118" Linear 0 0.1
+    Animate StarFive Size "40 40" Linear 0 0.1
+    Animate StarFive Alpha "0" Linear 0.2 0.1
+    Animate StarFive Position "810 118" Linear 0.2 0.1
+    Animate StarFive Size "20 20" Linear 0.2 0.1
+}
+event StarOneAnim
+{
+    Animate StarOne Alpha "0" Linear 0 0
+    Animate StarOne Position "417 230" Linear 0 0
+    Animate StarOne Size "20 20" Linear 0 0
+    
+	Animate StarOne Alpha "200" Linear 0 0.05
+	Animate StarOne Position "650 142" Linear 0 0.1
+    Animate StarOne Size "40 40" Linear 0 0.1
+    Animate StarOne Alpha "0" Linear 0.2 0.1
+    Animate StarOne Position "810 142" Linear 0.2 0.1
+    Animate StarOne Size "20 20" Linear 0.2 0.1
+}
+event StarTwoAnim
+{
+    Animate StarTwo Alpha "0" Linear 0 0
+    Animate StarTwo Position "417 230" Linear 0 0
+    Animate StarTwo Size "20 20" Linear 0 0
+
+	Animate StarTwo Alpha "200" Linear 0 0.05
+	Animate StarTwo Position "650 166" Linear 0 0.1
+    Animate StarTwo Size "40 40" Linear 0 0.1
+    Animate StarTwo Alpha "0" Linear 0.2 0.1
+    Animate StarTwo Position "810 166" Linear 0.2 0.1
+    Animate StarTwo Size "20 20" Linear 0.2 0.1
+}
+event StarThreeAnim
+{
+    Animate StarThree Alpha "0" Linear 0 0
+    Animate StarThree Position "417 230" Linear 0 0
+    Animate StarThree Size "20 20" Linear 0 0
+
+	Animate StarThree Alpha "200" Linear 0 0.05
+	Animate StarThree Position "650 190" Linear 0 0.1
+    Animate StarThree Size "40 40" Linear 0 0.1
+    Animate StarThree Alpha "0" Linear 0.2 0.1
+    Animate StarThree Position "810 190" Linear  0.2 0.1
+    Animate StarThree Size "20 20" Linear 0.2 0.1
+}
+event StarFourAnim
+{
+    Animate StarFour Alpha "0" Linear 0 0
+    Animate StarFour Position "417 230" Linear 0 0
+    Animate StarFour Size "20 20" Linear 0 0
+
+	Animate StarFour Alpha "200" Linear 0 0.05
+	Animate StarFour Position "650 214" Linear 0 0.1
+    Animate StarFour Size "40 40" Linear 0 0.1
+    Animate StarFour Alpha "0" Linear 0.2 0.1
+    Animate StarFour Position "810 214" Linear 0.2 0.1
+    Animate StarFour Size "20 20" Linear 0.2 0.1
+}
+event ScoreMarkAnim
+{
+    Animate ScoreMark Position "415 370" Linear 0 0
+    Animate ScoreMark Size "24 20" Linear 0 0
+    Animate ScoreMark Alpha "255" Linear 0 0
+
+    Animate ScoreMark Position "355 320" Linear 0 0.04
+    Animate ScoreMark Size "144 120" Linear 0 0.04
+    Animate ScoreMark Position "379 340" Linear 0.04 0.02
+    Animate ScoreMark Size "96 80" Linear 0.04 0.02
+    Animate ScoreMark Alpha "0" Linear 1.3 0.5
+}

@@ -22,6 +22,7 @@
 #include "parsemsg.h"
 #include "mymathlib.h"
 
+#include "cfefx.h"
 #include "motd.h"
 #include "popnum.h"
 #include "playerboard.h"
@@ -110,6 +111,7 @@ void CViewport::Start(void){
 #ifdef __HAS_NETEASE_API
 	AddNewPanel(m_pNeteaseMusic = new CNeteasePanel());
 #endif
+	AddNewPanel(m_pCfefxPanel = new CCfefxPanel());
 	AddNewPanel(m_pVotePanel = new vgui::CVotePanel());
 	AddNewPanel(m_pScorePanel = new vgui::CScorePanel());
 	AddNewPanel(m_pAmmoStack = new CAmmoStackPanel());
@@ -382,6 +384,10 @@ void CViewport::ShowDeathMsg(bool state){
 }
 void CViewport::EraseHighLight(cl_entity_t* var, int modelindex){
 	m_pItemHighLightPanel->EraseHighLight(var, modelindex);
+}
+void vgui::CViewport::ShowScoreMark(int& iDmg)
+{
+	m_pCfefxPanel->ShowScoreMark(iDmg);
 }
 #ifdef __HAS_NETEASE_API
 void CViewport::ShowMusic(bool state){

@@ -129,6 +129,11 @@ typedef struct cl_cvars_s{
 
 	cvar_t* pMotd = nullptr;
 
+	cvar_t*	pCfefxEnable = nullptr;
+	cvar_t*	pCfefxMaxDmg = nullptr;
+	cvar_t*	pCfefxKillTime = nullptr;
+	cvar_t* pCfefxSoundVolume = nullptr;
+
 	cvar_t* pRadar = nullptr;
 	cvar_t* pRadarZoom = nullptr;
 	cvar_t* pRadarAvatar = nullptr;
