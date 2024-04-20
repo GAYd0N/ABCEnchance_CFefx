@@ -94,23 +94,26 @@ void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
 		return;
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
+	auto star = m_pDmgStars[VecPos(panel)];
+	if (!star->IsVisible())
+		star->SetVisible(true);
 	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[VecPos(panel)]);
 	StartFade(panel, true, 0.2, 0.3);
 }
 void CCfefxPanel::ShowScoreEffect() {
 	m_pScoreEffect->SetBounds(m_flScoreEffectPos.x, m_flScoreEffectPos.y, m_flScoreEffectSize.x, m_flScoreEffectSize.y);
 	StartFade(m_pScoreEffect, true, 0.2);
-	float pos[3], pos1[3];
-	(m_flScoreEffectPos * 1.05).CopyToArray(pos);
-	(m_flScoreEffectSize * 1.2).CopyToArray(pos1);
+	float pos[3], size[3];
+	(m_flScoreMarkPos * 1.05).CopyToArray(pos);
+	(m_flScoreEffectSize * 1.2).CopyToArray(size);
 	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "position", pos, 2, 0.2, 0.5, vgui::AnimationController::INTERPOLATOR_LINEAR);
-	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "size", pos1, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
+	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "size", size, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	StartFade(m_pScoreEffect, false, 0.3, 0.9);
 	if (!m_pScoreMark->IsVisible())
 		m_pScoreMark->SetVisible(true);
-	vgui::GetAnimationController()->StartAnimationSequence(this,"ScoreMarkAnim");
+	vgui::GetAnimationController()->StartAnimationSequence(this, "ScoreMarkAnim");
 }
-void CCfefxPanel::ShowScoreMark(int &iDmg) {
+void CCfefxPanel::ShowScoreMark(int& iDmg) {
 	int i = gCVars.pCfefxMaxDmg->value / 10;
 	if (iDmg > i) {
 		int a = iDmg / i;
