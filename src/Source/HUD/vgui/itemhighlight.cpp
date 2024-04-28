@@ -68,10 +68,8 @@ public:
 		m_pText = new vgui::Label(this, "Text", "#GameUI_ABC_ItemPickupNotice");
 	}
 	virtual void SetVisible(bool state) override {
-		if (state && !IsVisible()) {
-			SetWide(0);
-			vgui::GetAnimationController()->RunAnimationCommand(this, "wide", m_iOldWide, 0.0f, 0.2f, vgui::AnimationController::INTERPOLATOR_LINEAR);
-		}
+		if (state && !IsVisible()) 
+			vgui::GetAnimationController()->StartAnimationSequence(GetParent(), "ItemPickupNoticePopUp");
 		BaseClass::SetVisible(state);
 	}
 	virtual void PerformLayout() override {
@@ -134,8 +132,7 @@ public:
 		}
 		m_pText->SetText(sz.c_str());
 	}
-	void SetOldValue() {
-		m_iOldWide = GetWide();
+	void GetTemplateText() {
 		char temp[256];
 		m_pText->GetText(temp, 256);
 		m_szTemplate = temp;
@@ -145,7 +142,6 @@ private:
 	vgui::GaussianBlurPanel* m_pGaussian = nullptr;
 	vgui::Label* m_pText = nullptr;
 	std::string m_szTemplate;
-	size_t m_iOldWide = 0;
 };
 CItemHighLightPanel::CItemHighLightPanel() : BaseClass(nullptr, VIEWPORT_ITEMHIGHLIGHT_NAME){
 	SetMouseInputEnabled(false);
@@ -166,7 +162,7 @@ CItemHighLightPanel::CItemHighLightPanel() : BaseClass(nullptr, VIEWPORT_ITEMHIG
 	m_pPickupPanel = new CItemPickupPanel(this, "Pickup");
 	LoadControlSettings(VGUI2_ROOT_DIR "ItemHighLightPanel.res");
 
-	reinterpret_cast<CItemPickupPanel*>(m_pPickupPanel)->SetOldValue();
+	reinterpret_cast<CItemPickupPanel*>(m_pPickupPanel)->GetTemplateText();
 	LoadItemList();
 }
 void CItemHighLightPanel::OnThink(){
@@ -207,16 +203,18 @@ void CItemHighLightPanel::OnThink(){
 	float needdot = cos(gCVars.pItemHighLightNameFOV->value * M_PI / 180);
 	if (maxdotent != nullptr && maxdot >= needdot) {
 		auto item = m_mapHighLightTable[maxdotent->curstate.modelindex];
-		if (gCVars.pItemHighLightName->value > 0) {
-			m_pLookatPanel->SetVisible(true);
-			reinterpret_cast<CItemNamePanel*>(m_pLookatPanel)->Update(item, maxdotent->index);
-		}
-		if (gCVars.pItemHighLightPickup->value > 0) {
-			Vector vecLength = maxdotent->curstate.origin;
-			vecLength -= local->curstate.origin;
-			if (vecLength.Length() <= 86) {
-				reinterpret_cast<CItemPickupPanel*>(m_pPickupPanel)->UpdateName(item->Name.c_str());
-				m_pPickupPanel->SetVisible(true);
+		if (item != nullptr) {
+			if (gCVars.pItemHighLightName->value > 0) {
+				m_pLookatPanel->SetVisible(true);
+				reinterpret_cast<CItemNamePanel*>(m_pLookatPanel)->Update(item, maxdotent->index);
+			}
+			if (gCVars.pItemHighLightPickup->value > 0) {
+				Vector vecLength = maxdotent->curstate.origin;
+				vecLength -= local->curstate.origin;
+				if (vecLength.Length() <= 86) {
+					reinterpret_cast<CItemPickupPanel*>(m_pPickupPanel)->UpdateName(item->Name.c_str());
+					m_pPickupPanel->SetVisible(true);
+				}
 			}
 		}
 	}
@@ -234,6 +232,8 @@ void CItemHighLightPanel::CreateHighLight(cl_entity_t* var) {
 		std::unordered_map<int, cl_highlight_t*> temp = {};
 		for (auto iter = m_mapHighLightTable.begin(); iter != m_mapHighLightTable.end(); iter++) {
 			auto& item = (*iter).second;
+			if (item == nullptr)
+				continue;
 			item->Index = gEngfuncs.pEventAPI->EV_FindModelIndex(item->Path.c_str());
 			if (item->Index > -1)
 				temp[item->Index] = item;
@@ -242,6 +242,8 @@ void CItemHighLightPanel::CreateHighLight(cl_entity_t* var) {
 		m_mapHighLightTable.swap(temp);
 		m_iHighLightMdl = PrecacheExtraModel("abcenchance/mdl/item_highlight.mdl");
 	}
+	if (m_mapHighLightTable[var->curstate.modelindex] == nullptr)
+		return;
 	if (m_mapHighLightTable.find(var->curstate.modelindex) == m_mapHighLightTable.end())
 		return;
 	if (m_mapEntityRestored.find(var->index) != m_mapEntityRestored.end())
