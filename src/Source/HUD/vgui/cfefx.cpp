@@ -29,14 +29,14 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 		new vgui::ImagePanel(this, "DmgMarkOne"),
 		new vgui::ImagePanel(this, "DmgMarkTwo"),
 		new vgui::ImagePanel(this, "DmgMarkThree"),
-		new vgui::ImagePanel(this, "DmgMarkFour"),
+		new vgui::ImagePanel(this, "DmgMarkFour")
 	};
 	m_pDmgStars = {
 		new vgui::ImagePanel(this, "StarFive"),
 		new vgui::ImagePanel(this, "StarOne"),
 		new vgui::ImagePanel(this, "StarTwo"),
 		new vgui::ImagePanel(this, "StarThree"),
-		new vgui::ImagePanel(this, "StarFour"),
+		new vgui::ImagePanel(this, "StarFour")
 	};
 
 	LoadControlSettings(VGUI2_ROOT_DIR "CfefxPanel.res");
@@ -94,10 +94,11 @@ void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
 		return;
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
-	auto star = m_pDmgStars[VecPos(panel)];
+	int p = VecPos(panel);
+	auto star = m_pDmgStars[p];
 	if (!star->IsVisible())
 		star->SetVisible(true);
-	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[VecPos(panel)]);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[p]);
 	StartFade(panel, true, 0.2, 0.3);
 }
 void CCfefxPanel::ShowScoreEffect() {
