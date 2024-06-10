@@ -149,8 +149,8 @@ $(FreeImageCheckRequirements)</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4311;4312;4819;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <Optimization>MinSpace</Optimization>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <Optimization>MaxSpeed</Optimization>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>.\;..\..\include;..\..\include\Interface;..\..\include\Interface\VGUI;..\..\include\HLSDK\utils;..\..\include\HLSDK\public;..\..\include\HLSDK\pm_shared;..\..\include\HLSDK\engine;..\..\include\HLSDK\dlls;..\..\include\HLSDK\common;..\..\include\HLSDK\cl_dll;..\..\include\VGUI;..\..\include\SteamSDK;..\..\thirdparty\install\glew\x86\Release_AVX2\include\GL;..\..\thirdparty\install\FreeImage\x86\Release\include;..\..\thirdparty\rapidjson\include;.\SourceSDK;.\VGUI;.\VGUI2;.\VGUI2\interface;.\vgui_controls;.\SourceSDK\tier0;.\SourceSDK\tier1;.\SourceSDK\vstdlib;.\src\Header\;.\src\Header\Var\;.\src\Header\Utility\;.\src\Header\Utility\opengl\;.\src\Header\HUD\;.\src\Header\HUD\vgui\;.\src\thirdparty\;.\src\Particleman\;.\src\;.\libvpx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
