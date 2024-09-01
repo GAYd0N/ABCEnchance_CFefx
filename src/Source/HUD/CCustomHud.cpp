@@ -465,15 +465,9 @@ int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 				return m_pfnMetaHook ? m_pfnMetaHook(pszName, iSize, pbuf) : 0;
 			//CFefx
 			static int iDmg;
-			static float flTime;
 			if (gCVars.pCfefxEnable->value > 0) {
-				float ClientTime = gEngfuncs.GetClientTime();
-				flTime = ClientTime > flTime ? flTime : 0;
-				if (ClientTime - flTime > 0.5f || iValue > (int)gCVars.pCfefxMaxDmg->value) {
-					iDmg += iValue;
-					flTime = gEngfuncs.GetClientTime();
-					g_pViewPort->ShowScoreMark(iDmg);
-				}
+				iDmg += iValue;
+				g_pViewPort->ShowScoreMark(iDmg);
 			}
 			//йс╫г╫г╤х
 			Vector vecView;

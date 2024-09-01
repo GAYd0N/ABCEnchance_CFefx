@@ -27,7 +27,7 @@ private:
 	void ShowScoreEffect();
 	int VecPos(vgui::ImagePanel* panel);
 
-	//int iKill = -1;
+	int iDmgTimes = 0;
 	Vector m_flScoreEffectPos;
 	Vector m_flScoreEffectSize;
 	Vector m_flScoreMarkPos;

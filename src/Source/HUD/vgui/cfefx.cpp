@@ -118,6 +118,8 @@ void CCfefxPanel::ShowScoreMark(int& iDmg) {
 	int i = gCVars.pCfefxMaxDmg->value / 10;
 	if (iDmg > i) {
 		int a = iDmg / i;
+		if (a == iDmgTimes || a == 0)
+			return;
 		if (a > 9) {
 			PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
 			ShowScoreEffect();
@@ -126,19 +128,32 @@ void CCfefxPanel::ShowScoreMark(int& iDmg) {
 			return;
 		}
 		if (a < 5) {
-			for (auto iter = m_pDmgMarks.begin() + 1; VecPos(*iter) <= a; iter++) {
+			if (m_pDmgMarks[0]->GetAlpha() != 0)
+				m_pDmgMarks[0]->SetAlpha(0);
+			for (auto iter = m_pDmgMarks.begin() + a; iter != m_pDmgMarks.end(); iter++) {
+				(*iter)->SetAlpha(0);
+			}
+			for (auto iter = m_pDmgMarks.begin() + a; VecPos(*iter) <= a; iter++) {
 				ShowDmgMark(*iter);
 			}
 		}
 		else {
-			for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < a - 4 && iter != m_pDmgMarks.end(); iter++) {
-				//先隐藏后面的
+			//先隐藏后面的
+			if (m_pDmgMarks[0]->GetAlpha() == 0) {
+				//上次伤害少于500
+				for (auto it = m_pDmgMarks.begin(); it != m_pDmgMarks.end(); it++)
+					(*it)->SetAlpha(0);
+			}
+			else { 
+				//上次伤害高于500
 				for (auto it = m_pDmgMarks.begin() + a - 4; it != m_pDmgMarks.end(); it++)
 					(*it)->SetAlpha(0);
-				//再显示前面的
-				ShowDmgMark(*iter);
 			}
+			//再显示前面的
+			for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < a - 4 && iter != m_pDmgMarks.end(); iter++)
+				ShowDmgMark(*iter);
 		}
+		iDmgTimes = a;
 	}
 }
 
@@ -171,6 +186,7 @@ void CCfefxPanel::Reset() {
 		(*iter)->SetAlpha(0);
 	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++)
 		(*iter)->SetAlpha(0);
+	iDmgTimes = 0;
 }
 
 void CCfefxPanel::ShowPanel(bool state) {
