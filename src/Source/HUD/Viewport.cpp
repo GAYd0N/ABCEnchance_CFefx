@@ -382,7 +382,7 @@ void CViewport::ShowDeathMsg(bool state){
 void CViewport::EraseHighLight(cl_entity_t* var, int modelindex){
 	m_pItemHighLightPanel->EraseHighLight(var, modelindex);
 }
-void vgui::CViewport::ShowScoreMark(int& iDmg)
+void CViewport::ShowScoreMark(int& iDmg)
 {
 	m_pCfefxPanel->ShowScoreMark(iDmg);
 }

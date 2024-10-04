@@ -131,7 +131,7 @@ using cl_cvars_t = struct{
 
 	cvar_t*	pCfefxEnable;
 	cvar_t*	pCfefxMaxDmg;
-	cvar_t*	pCfefxKillTime;
+	//cvar_t*	pCfefxKillTime;
 	cvar_t* pCfefxSoundVolume;
 
 	cvar_t* pRadar;

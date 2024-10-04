@@ -19,7 +19,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	SetMouseInputEnabled(false);
 	gCVars.pCfefxEnable = CREATE_CVAR("cl_cfefx", "1", FCVAR_VALUE, nullptr);
 	gCVars.pCfefxMaxDmg = CREATE_CVAR("cl_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<int>(cvar->value, 10, 10000); });
-	gCVars.pCfefxKillTime = CREATE_CVAR("cl_cfefx_time", "1", FCVAR_VALUE, nullptr);
+	//gCVars.pCfefxKillTime = CREATE_CVAR("cl_cfefx_time", "1", FCVAR_VALUE, nullptr);
 	gCVars.pCfefxSoundVolume = CREATE_CVAR("cl_cfefx_volume", "0.2", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 1); });
 
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
@@ -90,10 +90,15 @@ void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
 	m_pChannel.SetVolume(volume);
 }
 void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
-	if (!panel || panel->GetAlpha() > 0)
+	if (!panel)
 		return;
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
+	if (panel->GetAlpha() != 0)
+	{
+		panel->SetAlpha(255);
+		return;
+	}
 	int p = VecPos(panel);
 	auto star = m_pDmgStars[p];
 	if (!star->IsVisible())
@@ -118,8 +123,10 @@ void CCfefxPanel::ShowScoreMark(int& iDmg) {
 	int i = gCVars.pCfefxMaxDmg->value / 10;
 	if (iDmg > i) {
 		int a = iDmg / i;
+		//·ÀÖ¹ÖØ¸´´¥·¢
 		if (a == iDmgTimes || a == 0)
 			return;
+		iDmgTimes = a;
 		if (a > 9) {
 			PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
 			ShowScoreEffect();
@@ -133,7 +140,7 @@ void CCfefxPanel::ShowScoreMark(int& iDmg) {
 			for (auto iter = m_pDmgMarks.begin() + a; iter != m_pDmgMarks.end(); iter++) {
 				(*iter)->SetAlpha(0);
 			}
-			for (auto iter = m_pDmgMarks.begin() + a; VecPos(*iter) <= a; iter++) {
+			for (auto iter = m_pDmgMarks.begin() + 1; VecPos(*iter) <= a; iter++) {
 				ShowDmgMark(*iter);
 			}
 		}
@@ -153,7 +160,6 @@ void CCfefxPanel::ShowScoreMark(int& iDmg) {
 			for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < a - 4 && iter != m_pDmgMarks.end(); iter++)
 				ShowDmgMark(*iter);
 		}
-		iDmgTimes = a;
 	}
 }
 
