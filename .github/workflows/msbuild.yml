@@ -29,6 +29,7 @@ jobs:
       with:
         repository: GAYd0N/ABCEnchance_CFefx
         path: MetaHookSv/Plugins/ABCEnchance
+        ref: '5.25'
 
     - name: Setup build env
       working-directory: MetaHookSv
@@ -47,6 +48,10 @@ jobs:
     - name: Build FreeImage
       working-directory: MetaHookSv
       run: ./scripts/build-FreeImage-x86-Release.bat
+    
+    - name: Build Capstone
+      working-directory: MetaHookSv
+      run: ./scripts/build-capstone-x86-Release.bat
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2

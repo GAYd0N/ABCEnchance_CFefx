@@ -3,9 +3,9 @@ name: LiveBuild
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [ "5.25" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "5.25" ]
     
 env:
   SOLUTION_FILE_PATH: MetaHookSv/Plugins/ABCEnchance
@@ -31,6 +31,7 @@ jobs:
       with:
         repository: GAYd0N/ABCEnchance_CFefx
         path: MetaHookSv/Plugins/ABCEnchance
+        ref: '5.25'
 
     - name: Setup build env
       working-directory: MetaHookSv
@@ -49,6 +50,10 @@ jobs:
     - name: Build FreeImage
       working-directory: MetaHookSv
       run: ./scripts/build-FreeImage-x86-Release.bat
+
+    - name: Build Capstone
+      working-directory: MetaHookSv
+      run: ./scripts/build-capstone-x86-Release.bat
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
