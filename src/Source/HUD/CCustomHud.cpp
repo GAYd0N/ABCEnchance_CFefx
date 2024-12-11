@@ -27,6 +27,7 @@
 
 #include "weaponbank.h"
 
+#include "cfefx.h"
 #include "radar.h"
 #include "ammostack.h"
 #include "itemstack.h"
@@ -465,6 +466,12 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 			cl_entity_t* local = gEngfuncs.GetLocalPlayer();
 			if (!local)
 				return m_pfnMetaHook ? m_pfnMetaHook(pszName, iSize, pbuf) : 0;
+			//CFefx
+			static int iDmg;
+			if (gCVars.pCfefxEnable->value > 0) {
+				iDmg += iValue;
+				g_pViewPort->ShowScoreMark(iDmg);
+			}
 			//йс╫г╫г╤х
 			Vector vecView;
 			gEngfuncs.GetViewAngles(vecView);

@@ -23,6 +23,7 @@ class CDeathMsgPanel;
 #ifdef __HAS_NETEASE_API
 class CNeteasePanel;
 #endif // __HAS_NETEASE_API
+class CCfefxPanel;
 class CRadarPanel;
 class CAmmoStackPanel;
 class CItemStackPanel;
@@ -121,6 +122,7 @@ public:
 	void ShowDeathMsg(bool state);
 
 	void EraseHighLight(cl_entity_t* var, int modelindex);
+	void ShowScoreMark(int& iDmg);
 
 	void ShowMusic(bool state);
 #ifdef __HAS_NETEASE_API
@@ -173,6 +175,7 @@ private:
 	CDmgTilesPanel* m_pDmgTiles = nullptr;
 	CGenadeIndicatorPanel* m_pGIndicator = nullptr;
 	CDeathMsgPanel* m_pDeahMsg = nullptr;
+	CCfefxPanel* m_pCfefxPanel = nullptr;
 	CRadarPanel* m_pRadar = nullptr;
 	CAmmoStackPanel* m_pAmmoStack = nullptr;
 	CItemStackPanel* m_pItemStack = nullptr;

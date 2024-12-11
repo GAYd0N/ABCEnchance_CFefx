@@ -145,6 +145,12 @@ using cl_cvars_t = struct{
 	cvar_t* pCVarShadow;
 
 	cvar_t* pCVarAutoBunnyJump;
+
+	cvar_t* pCfefxEnable;
+	cvar_t* pCfefxMaxDmg;
+	//cvar_t*	pCfefxKillTime;
+	cvar_t* pCfefxSoundVolume;
+
 #ifdef _DEBUG
 	cvar_t* pCCTV;
 #endif

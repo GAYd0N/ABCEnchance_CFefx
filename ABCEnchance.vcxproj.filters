@@ -701,6 +701,9 @@
     <ClCompile Include="src\Source\Utility\liblrc.cpp">
       <Filter>Public\Source\LIb</Filter>
     </ClCompile>
+    <ClCompile Include="src\Source\HUD\vgui\cfefx.cpp">
+      <Filter>Public\Source\HUD\vgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourceSDK\Color.h">
@@ -1512,6 +1515,9 @@
     </ClInclude>
     <ClInclude Include="src\Header\Utility\liblrc.h">
       <Filter>Public\Header\LIb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Header\HUD\vgui\cfefx.h">
+      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
