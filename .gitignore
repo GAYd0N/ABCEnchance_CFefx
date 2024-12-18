@@ -1,0 +1,55 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.out
+*.app
+
+# VC user file
+*.vcxproj.user
+
+#Netease Api
+/src/Source/Utility/NeteaseApi.cpp
+/src/Header/Utility/NeteaseApi.h
+
+#Debug ang Release
+/.vs
+/Build/*.dll
+/Debug
+/Release
+/Release_AVX2
+/ABCEnchanceInstaller/.vs
+/ABCEnchanceInstaller/bin
+/ABCEnchanceInstaller/obj
+/ABCEnchanceInstaller/ABCEnchanceInstaller.csproj.user
+/ABCEnchanceInstaller/Properties/PublishProfiles/FolderProfile.pubxml.user
+/src/Header/Utility/NeteaseApi.h
+/src/Source/Utility/NeteaseApi.cpp
+/src/Header/NeteaseApi.h
+/Build/svencoop/abcenchance/config.json
+/Build/svencoop/abcenchance/neteasecookie
+/Build/svencoop/abcenchance/voice_ban.dt
