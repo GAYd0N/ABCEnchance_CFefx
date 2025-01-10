@@ -523,7 +523,7 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 			static int iDmg;
 			if (gCVars.pCfefxEnable->value > 0) {
 				iDmg += iValue;
-				g_pViewPort->ShowScoreMark(iDmg);
+				GetBaseViewPort()->ShowScoreMark(iDmg);
 			}
 			//йс╫г╫г╤х
 			Vector vecView;
