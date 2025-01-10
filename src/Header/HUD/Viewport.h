@@ -61,7 +61,7 @@ public:
 	void HideClientUI(void);
 	bool KeyInput(int down, int keynum, const char* pszCurrentBinding);
 
-	void AddEntity(int type, cl_entity_s* ent, const char* modelname);
+	void AddEntity(int type, struct cl_entity_s* ent, const char* modelname);
 
 	void SetInterMission(int intermission);
 	int GetInterMission();
@@ -138,7 +138,6 @@ public:
 
 	CWeaponChoosePanel* GetWeaponChoosePanel();
 
-	WEAPON* GetCurWeapon();
 	void SetCurWeapon(WEAPON* weapon);
 
 	enum class HUDNOTICE {
@@ -190,4 +189,5 @@ private:
 	char m_szNextMapName[MAX_SERVERNAME_LENGTH] = "<ERROR>";
 };
 }
-extern vgui::CViewport *g_pViewPort;
+
+extern inline vgui::CViewport* GetBaseViewPort();

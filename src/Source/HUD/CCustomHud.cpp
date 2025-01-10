@@ -73,6 +73,7 @@ static pfnUserMsgHook m_pfnMetaHook;
 static pfnUserMsgHook m_pfnDamage;
 static pfnUserMsgHook m_pfnBattery;
 static pfnUserMsgHook m_pfnClExtrasInfo;
+static pfnUserMsgHook m_pfnMapList;
 #pragma endregion
 
 #pragma region UserMsg Hooks
@@ -86,7 +87,7 @@ static int __MsgFunc_AmmoX(const char* pszName, int iSize, void* pbuf) {
 	int iIndex = READ_BYTE();
 	int iCount = READ_LONG();
 	gWR.SetAmmo(iIndex, abs(iCount));
-	g_pViewPort->GetAmmoPanel()->RefreshAmmo();
+	GetBaseViewPort()->GetAmmoPanel()->RefreshAmmo();
 	return m_pfnAmmoX(pszName, iSize, pbuf);
 }
 static int __MsgFunc_WeaponList(const char* pszName, int iSize, void* pbuf) {
@@ -135,8 +136,8 @@ static int __MsgFunc_CustWeapon(const char* pszName, int iSize, void* pbuf) {
 	std::string name = READ_STRING();
 	if (name.size() != 0) {
 		gWR.LoadWeaponSprites(id, name.c_str());
-		g_pViewPort->GetWeaponChoosePanel()->ReloadWeaponSpr();
-		g_pViewPort->GetWeaponStackPanel()->ReloadWeaponSpr();
+		GetBaseViewPort()->GetWeaponChoosePanel()->ReloadWeaponSpr();
+		GetBaseViewPort()->GetWeaponStackPanel()->ReloadWeaponSpr();
 	}
 	return m_pfnCustWeapon(pszName, iSize, pbuf);
 
@@ -198,8 +199,8 @@ static int __MsgFunc_WeaponSpr(const char* pszName, int iSize, void* pbuf) {
 		if (wp && wp->iId > 0) {
 			strncpy_s(wp->szSprName, name.c_str(), name.size());
 			gWR.LoadWeaponSprites(wp);
-			g_pViewPort->GetWeaponChoosePanel()->ReloadWeaponSpr();
-			g_pViewPort->GetWeaponStackPanel()->ReloadWeaponSpr();
+			GetBaseViewPort()->GetWeaponChoosePanel()->ReloadWeaponSpr();
+			GetBaseViewPort()->GetWeaponStackPanel()->ReloadWeaponSpr();
 
 		}
 	}
@@ -208,14 +209,14 @@ static int __MsgFunc_WeaponSpr(const char* pszName, int iSize, void* pbuf) {
 static int __MsgFunc_WeapPickup(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int iIndex = READ_SHORT();
-	g_pViewPort->GetWeaponStackPanel()->AddItemPickup(iIndex);
+	GetBaseViewPort()->GetWeaponStackPanel()->AddItemPickup(iIndex);
 	return m_pfnWeapPickup(pszName, iSize, pbuf);
 }
 static int __MsgFunc_AmmoPickup(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int iIndex = READ_BYTE();
 	int iCount = READ_LONG();
-	g_pViewPort->GetAmmoStackPanel()->AddAmmoPickup(iIndex, iCount);
+	GetBaseViewPort()->GetAmmoStackPanel()->AddAmmoPickup(iIndex, iCount);
 	return m_pfnAmmoPickup(pszName, iSize, pbuf);
 }
 static int __MsgFunc_ItemPickup(const char* pszName, int iSize, void* pbuf) {
@@ -226,7 +227,7 @@ static int __MsgFunc_ItemPickup(const char* pszName, int iSize, void* pbuf) {
 		return m_pfnItemPickup(pszName, iSize, pbuf);
 	HSPRITE spr = gCustomHud.GetSprite(index.value());
 	wrect_t* rect = gCustomHud.GetSpriteRect(index.value());
-	g_pViewPort->GetItemStackPanel()->AddItemPickup(spr, rect->left, rect->right, rect->top, rect->bottom);
+	GetBaseViewPort()->GetItemStackPanel()->AddItemPickup(spr, rect->left, rect->right, rect->top, rect->bottom);
 	return m_pfnItemPickup(pszName, iSize, pbuf);
 }
 
@@ -243,7 +244,7 @@ static int __MsgFunc_Damage(const char* pszName, int iSize, void* pbuf) {
 	}
 	if(damageTaken > 0 || armor > 0)
 		m_HudIndicator.AddIdicator(damageTaken, armor, vecFrom);
-	g_pViewPort->UpdateTiles(tiles);
+	GetBaseViewPort()->UpdateTiles(tiles);
 	AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_DAMAGE, 
 		std::to_string(damageTaken).c_str(), std::to_string(armor).c_str(), std::to_string(tiles).c_str());
 	return m_pfnDamage(pszName, iSize, pbuf);
@@ -251,14 +252,14 @@ static int __MsgFunc_Damage(const char* pszName, int iSize, void* pbuf) {
 static int __MsgFunc_Battery(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int battery = READ_SHORT();
-	g_pViewPort->SetArmor(battery);
+	GetBaseViewPort()->SetArmor(battery);
 	AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_BATTERY, std::to_string(battery).c_str());
 	return m_pfnBattery(pszName, iSize, pbuf);
 }
 static int __MsgFunc_Health(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int health = READ_LONG();
-	g_pViewPort->SetHealth(health);
+	GetBaseViewPort()->SetHealth(health);
 	AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_HEALTH, std::to_string(health).c_str());
 	return m_pfnHealth(pszName, iSize, pbuf);
 }
@@ -293,43 +294,43 @@ static int __MsgFunc_Spectator(const char* pszName, int iSize, void* pbuf) {
 	return m_pfnSpectator(pszName, iSize, pbuf);
 }
 static int __MsgFunc_ServerName(const char* pszName, int iSize, void* pbuf) {
-	if (g_pViewPort)
+	if (GetBaseViewPort())
 	{
 		BEGIN_READ(pbuf, iSize);
 		char buf[MAX_SERVERNAME_LENGTH];
 		strncpy_s(buf, READ_STRING(), MAX_SERVERNAME_LENGTH);
-		snprintf(g_pViewPort->GetServerName(), MAX_SERVERNAME_LENGTH, "%s", buf);
-		g_pViewPort->GetScoreBoard()->UpdateServerName();
+		snprintf(GetBaseViewPort()->GetServerName(), MAX_SERVERNAME_LENGTH, "%s", buf);
+		GetBaseViewPort()->GetScoreBoard()->UpdateServerName();
 	}
 	return m_pfnServerName(pszName, iSize, pbuf);
 }
 static int __MsgFunc_NextMap(const char* pszName, int iSize, void* pbuf) {
-	if (g_pViewPort)
+	if (GetBaseViewPort())
 	{
 		BEGIN_READ(pbuf, iSize);
 		char buf[MAX_SERVERNAME_LENGTH];
 		strncpy_s(buf, READ_STRING(), MAX_SERVERNAME_LENGTH);
-		snprintf(g_pViewPort->GetNextMap(), MAX_SERVERNAME_LENGTH, "%s", buf);
-		g_pViewPort->GetScoreBoard()->UpdateNextMap();
+		snprintf(GetBaseViewPort()->GetNextMap(), MAX_SERVERNAME_LENGTH, "%s", buf);
+		GetBaseViewPort()->GetScoreBoard()->UpdateNextMap();
 	}
 	return m_pfnNextMap(pszName, iSize, pbuf);
 }
 static int __MsgFunc_TimeEnd(const char* pszName, int iSize, void* pbuf) {
 	
-	if (g_pViewPort)
+	if (GetBaseViewPort())
 	{
 		BEGIN_READ(pbuf, iSize);
-		g_pViewPort->m_iTimeEnd = READ_LONG();
-		g_pViewPort->GetScoreBoard()->UpdateTimeEnd();
+		GetBaseViewPort()->m_iTimeEnd = READ_LONG();
+		GetBaseViewPort()->GetScoreBoard()->UpdateTimeEnd();
 	}
 	return m_pfnTimeEnd(pszName, iSize, pbuf);
 }
 static int __MsgFunc_ShowMenu(const char* pszName, int iSize, void* pbuf){
 	//block hahahaha
-	return g_pViewPort->MsgShowMenu(pszName, iSize, pbuf);
+	return GetBaseViewPort()->MsgShowMenu(pszName, iSize, pbuf);
 }
 static int __MsgFunc_VoteMenu(const char* pszName, int iSize, void* pbuf) {
-	if (!g_pViewPort->IsVoteEnable())
+	if (!GetBaseViewPort()->IsVoteEnable())
 		return m_pfnVoteMenu(pszName, iSize, pbuf);
 
 	BEGIN_READ(pbuf, iSize);
@@ -340,11 +341,11 @@ static int __MsgFunc_VoteMenu(const char* pszName, int iSize, void* pbuf) {
 	Q_strcpy(szContent, READ_STRING());
 	Q_strcpy(szYes, READ_STRING());
 	Q_strcpy(szNo, READ_STRING());
-	g_pViewPort->StartVote(szContent, szYes, szNo, iVoteType);
+	GetBaseViewPort()->StartVote(szContent, szYes, szNo, iVoteType);
 	return 1;
 }
 static int __MsgFunc_EndVote(const char* pszName, int iSize, void* pbuf) {
-	g_pViewPort->EndVote();
+	GetBaseViewPort()->EndVote();
 	return m_pfnEndVote(pszName, iSize, pbuf);
 }
 static int __MsgFunc_MOTD(const char* pszName, int iSize, void* pbuf) {
@@ -352,17 +353,17 @@ static int __MsgFunc_MOTD(const char* pszName, int iSize, void* pbuf) {
 	int code = READ_BYTE();
 	char* msg = READ_STRING();
 	if(msg[0] != '\0')
-		g_pViewPort->AppendMOTD(msg);
+		GetBaseViewPort()->AppendMOTD(msg);
 	else
-		g_pViewPort->CloseMOTD();
+		GetBaseViewPort()->CloseMOTD();
 	if (code > 0)
-		g_pViewPort->FinishSendMOTD();
+		GetBaseViewPort()->FinishSendMOTD();
 	return m_pfnMOTD(pszName, iSize, pbuf);
 }
 static int __MsgFunc_FlashBat(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int flash = READ_BYTE();
-	g_pViewPort->SetFlashBattery(flash);
+	GetBaseViewPort()->SetFlashBattery(flash);
 	AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_FLASHBATTERY, std::to_string(flash).c_str());
 	return m_pfnFlashBat(pszName, iSize, pbuf);
 }
@@ -370,11 +371,11 @@ static int __MsgFunc_Flashlight(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int on = READ_BYTE();
 	int battery = READ_BYTE();
-	g_pViewPort->SetFlashLight(on, battery);
+	GetBaseViewPort()->SetFlashLight(on, battery);
 	return m_pfnFlashlight(pszName, iSize, pbuf);
 }
 static int __MsgFunc_TextMsg(const char* pszName, int iSize, void* pbuf) {
-	if (g_pViewPort && g_pViewPort->TextMsg(pszName, iSize, pbuf))
+	if (GetBaseViewPort() && GetBaseViewPort()->TextMsg(pszName, iSize, pbuf))
 		return 1;
 	BEGIN_READ(pbuf, iSize);
 	vgui::CViewport::HUDNOTICE msg_dest = static_cast<vgui::CViewport::HUDNOTICE>(READ_BYTE());
@@ -427,8 +428,8 @@ static int __MsgFunc_TextMsg(const char* pszName, int iSize, void* pbuf) {
 	{
 	case vgui::CViewport::HUDNOTICE::PRINTNOTIFY:
 	case vgui::CViewport::HUDNOTICE::PRINTCENTER:
-		if (g_pViewPort)
-			g_pViewPort->ShowNotice(msg_dest, szBuf.c_str());
+		if (GetBaseViewPort())
+			GetBaseViewPort()->ShowNotice(msg_dest, szBuf.c_str());
 		return 0;
 	}
 
@@ -459,6 +460,29 @@ static int __MsgFunc_ClExtrasInfo(const char* pszName, int iSize, void* pbuf) {
 	CPlayerInfo::UpdateAll();
 	return result;
 }
+
+static std::vector<std::string> s_aryMapList;
+std::vector<std::string>& GetGameMapList() {
+	return s_aryMapList;
+}
+static int __MsgFunc_MapList(const char* pszName, int iSize, void* pbuf) {
+	BEGIN_READ(pbuf, iSize);
+	int clearall = READ_BYTE();
+	if (clearall == 0) {
+		//need clear list
+		int all_count = READ_SHORT();
+		s_aryMapList.clear();
+	}
+	else {
+		int start = READ_SHORT();
+		int end = READ_SHORT();
+		for (int i = start; i < end; i++) {
+			char* map = READ_STRING();
+			s_aryMapList.push_back(map);
+		}
+	}
+	return m_pfnMapList(pszName,iSize,pbuf);
+}
 static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int type = READ_BYTE();
@@ -487,7 +511,7 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 		CCustomHud::ABCCustomMsg type = static_cast<CCustomHud::ABCCustomMsg>(READ_BYTE());
 		switch (type) {
 		case CCustomHud::ABCCustomMsg::POPNUMBER: {
-			if (g_pViewPort->m_pPopNumber->value <= 0)
+			if (GetBaseViewPort()->m_pPopNumber->value <= 0)
 				return m_pfnMetaHook ? m_pfnMetaHook(pszName, iSize, pbuf) : 0;
 			Vector vecOrigin = { READ_COORD(), READ_COORD(), READ_COORD() };
 			int iValue = READ_LONG();
@@ -512,7 +536,7 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 			float angledotResult = CMathlib::DotProduct(vecLength, vecView);
 			//cos 60
 			if (angledotResult > 0.5)
-				g_pViewPort->AddPopNumber(vecOrigin, pColor, iValue);
+				GetBaseViewPort()->AddPopNumber(vecOrigin, pColor, iValue);
 			return m_pfnMetaHook ? m_pfnMetaHook(pszName, iSize, pbuf) : 0;
 		}
 		}
@@ -532,6 +556,7 @@ void(*UserCmd_ShowScores)(void);
 void(*UserCmd_HideScores)(void);
 void(*UserCmd_Attack1)(void);
 void(*UserCmd_MissionBrief)(void);
+void(*UserCmd_VoteMenu)(void);
 #pragma endregion
 
 #pragma region UserCmd Hooks
@@ -578,7 +603,7 @@ static void __UserCmd_Slot10(void) {
 		UserCmd_Slots[9]();
 }
 static void __UserCmd_MissionBrief(void) {
-	g_pViewPort->ShowMOTD();
+	GetBaseViewPort()->ShowMOTD();
 }
 static void __UserCmd_NextWeapon(void) {
 	gWR.SelectSlot(gWR.m_iNowSlot, 1, true);
@@ -590,21 +615,26 @@ static void __UserCmd_PrevWeapon(void) {
 }
 static void __UserCmd_OpenScoreboard(void) {
 	gCustomHud.m_bInScore = true;
-	if (g_pViewPort && !g_pViewPort->GetInterMission())
-		g_pViewPort->ShowScoreBoard();
+	if (GetBaseViewPort() && !GetBaseViewPort()->GetInterMission())
+		GetBaseViewPort()->ShowScoreBoard();
 	return;
 	//UserCmd_ShowScores();
 }
 static void __UserCmd_CloseScoreboard(void) {
 	gCustomHud.m_bInScore = false;
-	if (g_pViewPort && !g_pViewPort->GetInterMission())
-		g_pViewPort->HideScoreBoard();
+	if (GetBaseViewPort() && !GetBaseViewPort()->GetInterMission())
+		GetBaseViewPort()->HideScoreBoard();
 	//UserCmd_HideScores();
 }
 static void __UserCmd_Attack1(void) {
-	if (g_pViewPort->GetWeaponChoosePanel()->BlockAttackOnce())
+	if (GetBaseViewPort()->GetWeaponChoosePanel()->BlockAttackOnce())
 		return;
 	return UserCmd_Attack1();
+}
+static void __UserCmd_VoteMenu(void) {
+	extern void OpenVoteMenuDialog();
+	OpenVoteMenuDialog();
+	//UserCmd_VoteMenu();
 }
 #pragma endregion
 
@@ -645,7 +675,8 @@ void CCustomHud::HUD_Init(void){
 	m_pfnFlashlight = HOOK_MESSAGE(Flashlight);
 	m_pfnTextMsg = HOOK_MESSAGE(TextMsg);
 	m_pfnMetaHook = HOOK_MESSAGE(MetaHook);
-	m_pfnClExtrasInfo = HOOK_MESSAGE(ClExtrasInfo);
+	m_pfnClExtrasInfo = HOOK_MESSAGE(ClExtrasInfo)
+	m_pfnMapList = HOOK_MESSAGE(MapList);
 	if(!m_pfnMetaHook)
 		gEngfuncs.pfnHookUserMsg("MetaHook", __MsgFunc_MetaHook);
 
@@ -666,6 +697,7 @@ void CCustomHud::HUD_Init(void){
 	UserCmd_PrevWeapon = HOOK_COMMAND("invprev", PrevWeapon);
 	UserCmd_ShowScores = HOOK_COMMAND("+showscores", OpenScoreboard);
 	UserCmd_HideScores = HOOK_COMMAND("-showscores", CloseScoreboard);
+	UserCmd_VoteMenu = HOOK_COMMAND("votemenu", VoteMenu);
 
 	gCVars.pDamageScreenFilter = CREATE_CVAR("cl_damageshock", "1", FCVAR_VALUE, nullptr);
 	gCVars.pDamageScreenFactor = CREATE_CVAR("cl_damageshock_factor", "0.015", FCVAR_VALUE, nullptr);
@@ -742,7 +774,7 @@ void CCustomHud::HUD_UpdateClientData(client_data_t* cdata, float time){
 	float newuser = gEngfuncs.GetLocalPlayer()->curstate.iuser1;
 	static float iuser;
 	if (iuser != newuser) {
-		g_pViewPort->SetSpectate(newuser > 0);
+		GetBaseViewPort()->SetSpectate(newuser > 0);
 		iuser = newuser;
 	}
 	if (!m_bitsWeaponBits.has_value() || m_bitsWeaponBits != cdata->iWeaponBits)
@@ -753,7 +785,7 @@ void CCustomHud::HUD_UpdateClientData(client_data_t* cdata, float time){
 	static bool lj = false;
 	bool nlj = std::atoi(gEngfuncs.PhysInfo_ValueForKey("slj"));
 	if (lj != nlj) {
-		g_pViewPort->LongjumpCallBack(nlj);
+		GetBaseViewPort()->LongjumpCallBack(nlj);
 		lj = nlj;
 	}	
 }
@@ -803,7 +835,7 @@ void CCustomHud::IN_MouseEvent(int mstate){
 int CCustomHud::HUD_AddEntity(int type, cl_entity_s* ent, const char* modelname){
 	bool result = true;
 	result = result && m_HudEccoBuyMenu.AddEntity(type, ent, modelname);
-	g_pViewPort->AddEntity(type, ent, modelname);
+	GetBaseViewPort()->AddEntity(type, ent, modelname);
 	return result;
 }
 void CCustomHud::HUD_TxferPredictionData(struct entity_state_s* ps, const struct entity_state_s* pps, struct clientdata_s* pcd, const struct clientdata_s* ppcd, struct weapon_data_s* wd, const struct weapon_data_s* pwd) {
@@ -815,11 +847,11 @@ bool CCustomHud::HasSuit() {
 	return (m_bitsWeaponBits.value() & (1 << WEAPON_SUIT)) != 0;
 }
 void CCustomHud::WeaponBitsChangeCallBack(int bits){
-	g_pViewPort->WeaponBitsChangeCallback(bits);
+	GetBaseViewPort()->WeaponBitsChangeCallback(bits);
 }
 void CCustomHud::HudHideCallBack(int hidetoken){
 	m_bitsHideHUDDisplay = hidetoken;
-	g_pViewPort->HudHideCallBack(hidetoken);
+	GetBaseViewPort()->HudHideCallBack(hidetoken);
 }
 bool CCustomHud::IsHudHide(int HideToken) {
 	return (m_bitsHideHUDDisplay & HideToken) != 0;
@@ -838,32 +870,32 @@ void CCustomHud::SetSpectator(int cliententindex, bool value){
 	m_aryPlayerInfos[cliententindex-1].spectate = value;
 }
 bool CCustomHud::IsMouseVisible(){
-	if(g_pViewPort)
-		return g_pViewPort->IsMouseInputEnabled();
+	if(GetBaseViewPort())
+		return GetBaseViewPort()->IsMouseInputEnabled();
 
 	return false;
 }
 bool CCustomHud::IsTextMenuOpening() {
-	return g_pViewPort->IsTextMenuOpen();
+	return GetBaseViewPort()->IsTextMenuOpen();
 }
 bool CCustomHud::SelectTextMenuItem(int slot){
 	if (IsTextMenuOpening()) {
-		g_pViewPort->SelectMenuItem(slot);
+		GetBaseViewPort()->SelectMenuItem(slot);
 		return true;
 	}
 	return false;
 }
 void CCustomHud::SetMouseVisible(bool state) {
-	if(g_pViewPort)
-		g_pViewPort->SetMouseInputEnabled(state);
+	if(GetBaseViewPort())
+		GetBaseViewPort()->SetMouseInputEnabled(state);
 }
 void CCustomHud::SetCurWeapon(WEAPON* weapon){
-	g_pViewPort->SetCurWeapon(weapon);
+	GetBaseViewPort()->SetCurWeapon(weapon);
 }
 void CCustomHud::OnMousePressed(int code) {
 	switch (code) {
 		case vgui::MouseCode::MOUSE_LEFT: {
-			g_pViewPort->GetWeaponChoosePanel()->SelectWeapon();
+			GetBaseViewPort()->GetWeaponChoosePanel()->SelectWeapon();
 			m_HudEccoBuyMenu.SelectMenu();
 			break;
 		}
@@ -903,7 +935,7 @@ bool CCustomHud::IsInScore() {
 	return m_bInScore;
 }
 void CCustomHud::RenderRadar(){
-	g_pViewPort->GetRadarPanel()->RenderRadar();
+	GetBaseViewPort()->GetRadarPanel()->RenderRadar();
 }
 player_infosc_t* CCustomHud::GetPlayerInfoEx(int index) {
 	return reinterpret_cast<player_infosc_t*>(IEngineStudio.PlayerInfo(index - 1));

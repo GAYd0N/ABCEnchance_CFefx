@@ -701,6 +701,9 @@
     <ClCompile Include="src\Source\Utility\liblrc.cpp">
       <Filter>Public\Source\LIb</Filter>
     </ClCompile>
+    <ClCompile Include="vgui2\GameUI\VoteMenuDialog.cpp">
+      <Filter>vgui2\gameui</Filter>
+    </ClCompile>
     <ClCompile Include="src\Source\HUD\vgui\cfefx.cpp">
       <Filter>Public\Source\HUD\vgui</Filter>
     </ClCompile>
@@ -1515,6 +1518,9 @@
     </ClInclude>
     <ClInclude Include="src\Header\Utility\liblrc.h">
       <Filter>Public\Header\LIb</Filter>
+    </ClInclude>
+    <ClInclude Include="vgui2\GameUI\VoteMenuDialog.h">
+      <Filter>vgui2\gameui</Filter>
     </ClInclude>
     <ClInclude Include="src\Header\HUD\vgui\cfefx.h">
       <Filter>Public\Header\HUD\vgui</Filter>

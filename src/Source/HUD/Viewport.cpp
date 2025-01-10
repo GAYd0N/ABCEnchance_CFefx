@@ -177,6 +177,8 @@ void CViewport::Reset() {
 		pPanel->Reset();
 	CPlayerInfo::GetThisPlayerInfo()->ResetAll();
 	m_iInterMission = 0;
+	extern void CloseVoteMenuDialog();
+	CloseVoteMenuDialog();
 }
 
 void CViewport::Init(void){
@@ -487,4 +489,9 @@ void Viewport_SelectWeapon() {
 }
 void Viewport_DropAllWeapon() {
 	g_pViewPort->GetWeaponChoosePanel()->Reset();
+}
+
+inline vgui::CViewport* GetBaseViewPort()
+{
+	return g_pViewPort;
 }

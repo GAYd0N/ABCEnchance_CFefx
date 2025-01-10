@@ -53,10 +53,10 @@ CVotePanel::CVotePanel()
 
 	m_pHudVote = CREATE_CVAR("cl_hud_vote", "1", FCVAR_VALUE, nullptr);
 	m_pHudVoteKeyYes = CREATE_CVAR("cl_hud_votekey_yes", "92", FCVAR_VALUE, [](cvar_t* cvar) {
-		g_pViewPort->GetVotePanel()->m_iYes = static_cast<int>(cvar->value);
+		GetBaseViewPort()->GetVotePanel()->m_iYes = static_cast<int>(cvar->value);
 	});
 	m_pHudVoteKeyNo = CREATE_CVAR("cl_hud_votekey_no", "93", FCVAR_VALUE, [](cvar_t* cvar) {
-		g_pViewPort->GetVotePanel()->m_iNo = static_cast<int>(cvar->value);
+		GetBaseViewPort()->GetVotePanel()->m_iNo = static_cast<int>(cvar->value);
 	});
 }
 const char* CVotePanel::GetName(){
@@ -112,10 +112,13 @@ void CVotePanel::StartVote(char* szContent, char* szYes, char* szNo, int iVoteTy
 		std::smatch result;
 		if (std::regex_match(content, result, pattern) && result.size() >= 2) {
 			std::string playername = result[1];
+			std::string percent = result[2];
 			wchar_t wPlayerName[32] = { 0 };
+			wchar_t wPercent[8] = { 0 };
 			wchar_t wszContent[1024] = { 0 };
 			vgui::localize()->ConvertANSIToUnicode(playername.c_str(), wPlayerName, sizeof(wPlayerName));
-			vgui::localize()->ConstructString(wszContent, sizeof(wszContent), vgui::localize()->Find(localtoken.c_str()), 1, wPlayerName);
+			vgui::localize()->ConvertANSIToUnicode(percent.c_str(), wPercent, sizeof(wPercent));
+			vgui::localize()->ConstructString(wszContent, sizeof(wszContent), vgui::localize()->Find(localtoken.c_str()), 2, wPlayerName, wPercent);
 			m_pContentLable->SetText(wszContent);
 		}
 	};
@@ -133,22 +136,22 @@ void CVotePanel::StartVote(char* szContent, char* szYes, char* szNo, int iVoteTy
 	wszNo += L" ";
 	switch (iVoteType){
 		case KILL: {
-			szPatten = "Would you like to kill \"(.*)\"\\?";
+			szPatten = "Would you like to kill \"(.*)\"\\? \\((.*) percent needed.\\)";
 			szToken = VOTE_KILL_LOCALIZE_TOKEN;
 			break;
 		}
 		case KICK: {
-			szPatten = "Would you like to kick \"(.*)\" from the server\\?";
+			szPatten = "Would you like to kick \"(.*)\" from the server\\? \\((.*) percent needed.\\)";
 			szToken = VOTE_KICK_LOCALIZE_TOKEN;
 			break;
 		}
 		case BAN: {
-			szPatten = "Do you wish to ban \"(.*)\" from the server\\?";
+			szPatten = "Do you wish to ban \"(.*)\" from the server\\? \\((.*) percent needed.\\)";
 			szToken = VOTE_BAN_LOCALIZE_TOKEN;
 			break;
 		}
 		case MAP: {
-			szPatten = "Would you like to change the map to \"(.*)\"\\?";
+			szPatten = "Would you like to change the map to \"(.*)\"\\? \\((.*) percent needed.\\)";
 			szToken = VOTE_MAP_LOCALIZE_TOKEN;
 			break;
 		}
