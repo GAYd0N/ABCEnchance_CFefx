@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <cstddef>
 #include <functional>
 
 #include <IUtilHTTPClient.h>
@@ -26,6 +27,7 @@ public:
 	void Save();
 	std::string Get();
 	void Set(const char* cookie);
+	void Set(const std::string& cookie);
 	size_t Size();
 private:
 	std::string m_szPath;
@@ -35,6 +37,7 @@ private:
 typedef struct httpContext_s {
 	std::string url;
 	UtilHTTPMethod method;
+	bool async;
 	CHttpCookieJar* cookie;
 } httpContext_t;
 
@@ -68,20 +71,20 @@ public:
 		return this;
 	}
 
-	CHttpClientItem* Create(bool async);
-
 	CHttpClientItem* Start();
 	IUtilHTTPResponse* StartSync();
 
 	CHttpClientItem* SetFeild(const char* key, const char* var);
+	CHttpClientItem* SetPostBody(const char* contentType, const char* payload, size_t payloadSize);
+	CHttpClientItem* SetCookieJar(CHttpCookieJar* jar);
 	HTTPCLIENT_STATE GetState() const;
-
-	UtilHTTPRequestId_t GetId();
 	bool Interrupt();
 protected:
 	virtual void Destroy();
 	virtual void OnResponseComplete(IUtilHTTPRequest* RequestInstance, IUtilHTTPResponse* ResponseInstance);
 	virtual void OnUpdateState(UtilHTTPRequestState NewState);
+	//Called when receive chunked payload data
+	virtual void OnReceiveData(IUtilHTTPRequest* RequestInstance, IUtilHTTPResponse* ResponseInstance, const void* pData, size_t cbSize);
 private:
 	std::function<void(IUtilHTTPResponse*)> m_pOnResponse = nullptr;
 	std::function<void()> m_pOnFinish = nullptr;
@@ -90,10 +93,10 @@ private:
 
 	CHttpCookieJar* m_pCookieJar = nullptr;
 
+	std::vector<std::byte> m_aryReciveData = {};
+
 	bool m_bAsync = false;
-	UtilHTTPRequestId_t m_pId = 0;
-	//Only for sync
-	IUtilHTTPRequest* m_pSyncReq = nullptr;
+	IUtilHTTPRequest* m_pRequest = nullptr;
 	
 	httpContext_s m_hContext;
 	HTTPCLIENT_STATE m_iStatue;
@@ -107,9 +110,9 @@ public:
 
 	void CheckAll();
 	void ClearAll();
-	CHttpClientItem* Fetch(const char* url, UtilHTTPMethod method);
+	CHttpClientItem* Fetch(const char* url, UtilHTTPMethod method, bool async = true);
 	CHttpClientItem* Fetch(httpContext_s* ctx);
-	bool Interrupt(UtilHTTPRequestId_t id);
+	bool Interrupt(CHttpClientItem* pDestory);
 private:
 	std::vector<CHttpClientItem*> m_aryItems;
 };

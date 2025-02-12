@@ -3,26 +3,24 @@
 #include "httpclient.h"
 #include <Controls.h>
 
-#define MAX_COOKIE_LENGTH 2048
-
 static HINTERFACEMODULE g_hUtilHTTPClient;
 static IUtilHTTPClient* g_pUtilHTTPClient;
 static CHttpClient g_pHttpClient;
 
 void CHttpClient::Init(){
-	g_hUtilHTTPClient = Sys_LoadModule("UtilHTTPClient_SteamAPI.dll");
+	g_hUtilHTTPClient = Sys_LoadModule("UtilHTTPClient_libcurl.dll");
 	if (!g_hUtilHTTPClient){
-		SYS_ERROR("Could not load UtilHTTPClient_SteamAPI.dll");
+		SYS_ERROR("Could not load UtilHTTPClient_libcurl.dll");
 		return;
 	}
 	auto factory = Sys_GetFactory(g_hUtilHTTPClient);
 	if (!factory){
-		SYS_ERROR("Could not get factory from UtilHTTPClient_SteamAPI.dll");
+		SYS_ERROR("Could not get factory from UtilHTTPClient_libcurl.dll");
 		return;
 	}
-	g_pUtilHTTPClient = (decltype(g_pUtilHTTPClient))factory(UTIL_HTTPCLIENT_STEAMAPI_INTERFACE_VERSION, NULL);
+	g_pUtilHTTPClient = (decltype(g_pUtilHTTPClient))factory(UTIL_HTTPCLIENT_LIBCURL_INTERFACE_VERSION, NULL);
 	if (!g_pUtilHTTPClient){
-		SYS_ERROR("Could not get UtilHTTPClient from UtilHTTPClient_SteamAPI.dll");
+		SYS_ERROR("Could not get UtilHTTPClient from UtilHTTPClient_libcurl.dll");
 		return;
 	}
 	if (g_pUtilHTTPClient){
@@ -67,10 +65,11 @@ void CHttpClient::ClearAll(){
 	}
 	m_aryItems.clear();
 }
-CHttpClientItem* CHttpClient::Fetch(const char* url, UtilHTTPMethod method){
+CHttpClientItem* CHttpClient::Fetch(const char* url, UtilHTTPMethod method, bool async){
 	httpContext_t ctx = {
 		url,
 		method,
+		async,
 		nullptr
 	};
 	CHttpClientItem* item = new CHttpClientItem(&ctx);
@@ -82,10 +81,10 @@ CHttpClientItem* CHttpClient::Fetch(httpContext_s* ctx){
 	m_aryItems.push_back(item);
 	return item;
 }
-bool CHttpClient::Interrupt(UtilHTTPRequestId_t id){
+bool CHttpClient::Interrupt(CHttpClientItem* pDestory){
 	for (auto iter = m_aryItems.begin(); iter != m_aryItems.end();) {
 		auto item = *iter;
-		if (item->GetId() == id) {
+		if (item == pDestory) {
 			bool state = item->Interrupt();
 			if (state) {
 				delete item;
@@ -96,68 +95,85 @@ bool CHttpClient::Interrupt(UtilHTTPRequestId_t id){
 		else
 			iter++;
 	}
-	return g_pUtilHTTPClient->DestroyRequestById(id);
+	return false;
 }
 
 CHttpClientItem::CHttpClientItem(httpContext_s* ctx) : IUtilHTTPCallbacks(){
 	m_hContext.url = ctx->url;
 	m_hContext.method = ctx->method;
 	m_pCookieJar = ctx->cookie;
-	m_iStatue = HTTPCLIENT_STATE::INVALID;
-}
-CHttpClientItem* CHttpClientItem::Create(bool async){
 	m_iStatue = HTTPCLIENT_STATE::PENDING;
-	if (async) {
-		auto req = g_pUtilHTTPClient->CreateAsyncRequest(m_hContext.url.c_str(), m_hContext.method, this);
-		m_pId = req->GetRequestId();
-		if (m_pCookieJar)
-			req->SetField(UtilHTTPField::cookie, m_pCookieJar->Get().c_str());
-	}
-	else {
-		m_pSyncReq = g_pUtilHTTPClient->CreateSyncRequest(m_hContext.url.c_str(), m_hContext.method, this);
-		if (m_pCookieJar)
-			m_pSyncReq->SetField(UtilHTTPField::cookie, m_pCookieJar->Get().c_str());
-	}
-	m_bAsync = async;
-	return this;
+	m_bAsync = ctx->async;
+	if (m_bAsync)
+		m_pRequest = g_pUtilHTTPClient->CreateAsyncRequest(m_hContext.url.c_str(), m_hContext.method, this);
+	else
+		m_pRequest = g_pUtilHTTPClient->CreateSyncRequest(m_hContext.url.c_str(), m_hContext.method, this);
+	if (m_pCookieJar)
+		m_pRequest->SetField("Cookie", m_pCookieJar->Get().c_str());
+	m_pRequest->SetAutoDestroyOnFinish(true);
 }
 CHttpClientItem* CHttpClientItem::Start(){
+	if (!m_pRequest)
+		return nullptr;
 	if (m_bAsync) {
-		auto req = g_pUtilHTTPClient->GetRequestById(m_pId);
-		if (req)
-			req->SendAsyncRequest();
+		if (m_pCookieJar)
+			m_pRequest->SetField("Cookie", m_pCookieJar->Get().c_str());
+		m_pRequest->Send();
+		return this;
 	}
-	return this;
+	return nullptr;
 }
 IUtilHTTPResponse* CHttpClientItem::StartSync(){
 	if (!m_bAsync) {
-		m_pSyncReq->SendAsyncRequest();
-		m_pSyncReq->WaitForResponse();
-		auto reb = m_pSyncReq->GetResponse(); 
+		if (m_pCookieJar)
+			m_pRequest->SetField("Cookie", m_pCookieJar->Get().c_str());
+		m_pRequest->Send();
+		m_pRequest->WaitForComplete();
+		auto reb = m_pRequest->GetResponse(); 
 		if (m_pCookieJar) {
-			char cookiebuf[MAX_COOKIE_LENGTH];
-			reb->GetHeader("Set-Cookie", cookiebuf, MAX_COOKIE_LENGTH);
-			m_pCookieJar->Set(cookiebuf);
+			std::string cookiebuf;
+			size_t bufsize = 0;
+			if (reb->GetHeaderSize("Set-Cookie", &bufsize)) {
+				cookiebuf.resize(bufsize);
+				if (reb->GetHeader("Set-Cookie", cookiebuf.data(), bufsize)) {
+					m_pCookieJar->Set(cookiebuf);
+					m_pCookieJar->Save();
+				}
+			}
 		}
 		return reb;
 	}
 	return nullptr;
 }
 CHttpClientItem* CHttpClientItem::SetFeild(const char* key, const char* var){
-	auto req = m_bAsync ? g_pUtilHTTPClient->GetRequestById(m_pId) : m_pSyncReq;
-	if (req)
-		req->SetField(key, var);
-	return this;
+	if (m_pRequest) {
+		m_pRequest->SetField(key, var);
+		return this;
+	}
+	return nullptr;
 }
 
+CHttpClientItem* CHttpClientItem::SetPostBody(const char* contentType, const char* payload, size_t payloadSize) {
+	if (m_pRequest) {
+		m_pRequest->SetPostBody(contentType, payload, payloadSize);
+		return this;
+	}
+	return nullptr;
+}
+CHttpClientItem* CHttpClientItem::SetCookieJar(CHttpCookieJar* jar)
+{
+	if (m_pRequest) {
+		m_pCookieJar = jar;
+		return this;
+	}
+	return nullptr;
+}
 HTTPCLIENT_STATE CHttpClientItem::GetState() const{
 	return m_iStatue;
 }
-UtilHTTPRequestId_t CHttpClientItem::GetId(){
-	return m_pId;
-}
 bool CHttpClientItem::Interrupt(){
-	return g_pUtilHTTPClient->DestroyRequestById(m_pId);
+	m_pRequest->Destroy();
+	return true;
 }
 void CHttpClientItem::Destroy() {
 	m_iStatue = HTTPCLIENT_STATE::DESTORYED;
@@ -181,9 +197,15 @@ void CHttpClientItem::OnResponseComplete(IUtilHTTPRequest* RequestInstance, IUti
 	if (m_pOnResponse) {
 		std::invoke(m_pOnResponse, ResponseInstance);
 		if (m_pCookieJar) {
-			char cookiebuf[MAX_COOKIE_LENGTH];
-			ResponseInstance->GetHeader("Set-Cookie", cookiebuf, MAX_COOKIE_LENGTH);
-			m_pCookieJar->Set(cookiebuf);
+			std::string cookiebuf;
+			size_t bufsize = 0;
+			if (ResponseInstance->GetHeaderSize("Set-Cookie", &bufsize)) {
+				cookiebuf.resize(bufsize);
+				if (ResponseInstance->GetHeader("Set-Cookie", cookiebuf.data(), bufsize)) {
+					m_pCookieJar->Set(cookiebuf);
+					m_pCookieJar->Save();
+				}
+			}
 		}
 	}
 }
@@ -207,6 +229,12 @@ void CHttpClientItem::OnUpdateState(UtilHTTPRequestState NewState) {
 	}
 }
 
+void CHttpClientItem::OnReceiveData(IUtilHTTPRequest* RequestInstance, IUtilHTTPResponse* ResponseInstance, const void* pData, size_t cbSize)
+{
+	m_aryReciveData.resize(cbSize);
+	std::memcpy(m_aryReciveData.data(), pData, cbSize);
+}
+
 CHttpClient* GetHttpClient(){
 	return &g_pHttpClient;
 }
@@ -219,10 +247,11 @@ CHttpCookieJar::CHttpCookieJar(const char* path){
 void CHttpCookieJar::Load(const char* path){
 	FileHandle_t file = vgui::filesystem()->Open(path, "r");
 	if (file) {
-		char buffer[MAX_COOKIE_LENGTH];
-		vgui::filesystem()->Read(buffer, MAX_COOKIE_LENGTH, file);
+		int filesize = vgui::filesystem()->Size(file);
+		std::string buffer;
+		buffer.resize(filesize);
+		vgui::filesystem()->Read(buffer.data(), filesize, file);
 		m_szCookie = buffer;
-		m_szCookie += '\0';
 		m_szPath = path;
 	}
 	vgui::filesystem()->Close(file);
@@ -239,6 +268,10 @@ std::string CHttpCookieJar::Get(){
 	return m_szCookie;
 }
 void CHttpCookieJar::Set(const char* cookie){
+	m_szCookie = cookie;
+}
+
+void CHttpCookieJar::Set(const std::string& cookie){
 	m_szCookie = cookie;
 }
 
