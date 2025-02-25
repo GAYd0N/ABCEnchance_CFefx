@@ -102,6 +102,33 @@ event StarFourAnim
     Animate StarFour Position "810 214" Linear 0.2 0.1
     Animate StarFour Size "20 20" Linear 0.2 0.1
 }
+
+event DmgMarkFiveFade
+{
+    Animate DmgMarkFive Alpha "0" Linear 0 0
+    Animate DmgMarkFive Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkOneFade
+{
+    Animate DmgMarkOne Alpha "0" Linear 0 0
+    Animate DmgMarkOne Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkTwoFade
+{
+    Animate DmgMarkTwo Alpha "0" Linear 0 0
+    Animate DmgMarkTwo Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkThreeFade
+{
+    Animate DmgMarkThree Alpha "0" Linear 0 0
+    Animate DmgMarkThree Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkFourFade
+{
+    Animate DmgMarkFour Alpha "0" Linear 0 0
+    Animate DmgMarkFour Alpha "255" Linear 0.2 0.3
+}
+
 event ScoreMarkAnim
 {
     Animate ScoreMark Position "415 370" Linear 0 0

@@ -99,7 +99,7 @@ void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
 		panel->SetVisible(true);
 	if (panel->GetAlpha() != 0)
 	{
-		panel->SetAlpha(255);
+		panel->SetAlpha(255); 
 		return;
 	}
 	int p = VecPos(panel);
@@ -107,7 +107,8 @@ void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
 	if (!star->IsVisible())
 		star->SetVisible(true);
 	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[p]);
-	StartFade(panel, true, 0.2, 0.3);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
+	//StartFade(panel, true, 0.2, 0.3);
 }
 void CCfefxPanel::ShowScoreEffect() {
 	m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
@@ -175,7 +176,7 @@ void CCfefxPanel::OnThink()
 	}
 	//防止动画执行失败强制显示
 	for (auto it = m_pDmgMarks.begin() + 2; it != m_pDmgMarks.end(); it++) {
-		if ((*it)->GetAlpha() > (*(it - 1))->GetAlpha())
+		if ((*it)->GetAlpha() > (*(it - 1))->GetAlpha()) 
 			(*(it - 1))->SetAlpha(255);
 	}
 }
@@ -205,6 +206,8 @@ void CCfefxPanel::OnThink()
 
 void CCfefxPanel::Reset() {
 	ShowPanel(true);
+	m_pScoreEffect->SetAlpha(0);
+	m_pScoreMark->SetAlpha(0);
 	for (auto iter = m_pDmgMarks.begin(); iter != m_pDmgMarks.end(); iter++)
 		(*iter)->SetAlpha(0);
 	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++)

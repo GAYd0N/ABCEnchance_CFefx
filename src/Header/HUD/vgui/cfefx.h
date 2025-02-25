@@ -60,6 +60,13 @@ private:
 		"StarThreeAnim",
 		"StarFourAnim"
 	};
+	std::array<const char*, 5> m_szMarkAnims = {
+		"DmgMarkFiveFade",
+		"DmgMarkOneFade",
+		"DmgMarkTwoFade",
+		"DmgMarkThreeFade",
+		"DmgMarkFourFade"
+	};
 
 	FModEngine::CFModSound m_pSound;
 	FModEngine::CFModChannel m_pChannel;
