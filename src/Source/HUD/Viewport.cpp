@@ -393,9 +393,9 @@ void CViewport::ShowDeathMsg(bool state){
 void CViewport::EraseHighLight(cl_entity_t* var, int modelindex){
 	m_pItemHighLightPanel->EraseHighLight(var, modelindex);
 }
-void CViewport::ShowScoreMark(int& iDmg)
+void vgui::CViewport::AddDmg(int iDmg)
 {
-	m_pCfefxPanel->ShowScoreMark(iDmg);
+	m_pCfefxPanel->AddDmg(iDmg);
 }
 #ifdef __HAS_NETEASE_API
 void CViewport::ShowMusic(bool state){

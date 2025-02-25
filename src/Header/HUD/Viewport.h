@@ -124,7 +124,7 @@ public:
 	void ShowDeathMsg(bool state);
 
 	void EraseHighLight(cl_entity_t* var, int modelindex);
-	void ShowScoreMark(int& iDmg);
+	void AddDmg(int iDmg);
 
 	void ShowMusic(bool state);
 #ifdef __HAS_NETEASE_API

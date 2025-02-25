@@ -17,8 +17,9 @@ public:
 	virtual bool IsVisible() override;
 	virtual vgui::VPANEL GetVPanel() override;
 	virtual void SetParent(vgui::VPANEL parent) override;
+	virtual void OnThink() override;
 
-	void ShowScoreMark(int& iDmg);
+	void AddDmg(int iDmg);
 
 private:
 	//void ShowKillMark(wchar_t* killer);
@@ -28,12 +29,13 @@ private:
 	void ShowScoreEffect();
 	int VecPos(vgui::ImagePanel* panel);
 
-	int iDmgTimes = 0;
-	Vector m_flScoreEffectPos;
-	Vector m_flScoreEffectSize;
-	Vector m_flScoreMarkPos;
-	Vector m_flDmgStarsPos;
-	Vector m_flDmgStarsSize;
+	int m_iDmgTimes;
+	int m_iDmg;
+	Vector m_vecScoreEffectPos;
+	Vector m_vecScoreEffectSize;
+	Vector m_vecScoreMarkPos;
+	Vector m_vecDmgStarsPos;
+	Vector m_vecDmgStarsSize;
 
 	vgui::ImagePanel* m_pScoreMark = nullptr;
 	vgui::ImagePanel* m_pScoreEffect = nullptr;

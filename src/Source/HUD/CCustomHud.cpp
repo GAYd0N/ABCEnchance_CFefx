@@ -517,11 +517,8 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 			if (!local)
 				return m_pfnMetaHook ? m_pfnMetaHook(pszName, iSize, pbuf) : 0;
 			//CFefx
-			static int iDmg;
-			if (gCVars.pCfefxEnable->value > 0) {
-				iDmg += iValue;
-				GetBaseViewPort()->ShowScoreMark(iDmg);
-			}
+			if (gCVars.pCfefxEnable->value > 0)
+				GetBaseViewPort()->AddDmg(iValue);
 			//йс╫г╫г╤х
 			Vector vecView;
 			gEngfuncs.GetViewAngles(vecView);

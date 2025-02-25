@@ -42,11 +42,11 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	LoadControlSettings(VGUI2_ROOT_DIR "CfefxPanel.res");
 	vgui::GetAnimationController()->SetScriptFile(GetVPanel(), VGUI2_ROOT_DIR "hudanimations.txt");
 
-	m_flScoreEffectPos = { (float)m_pScoreEffect->GetXPos(), (float)m_pScoreEffect->GetYPos(), 0 };
-	m_flScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
-	m_flScoreMarkPos = { (float)m_pScoreMark->GetXPos(), (float)m_pScoreMark->GetYPos(), 0 };
-	m_flDmgStarsPos = { (float)m_pDmgStars[0]->GetXPos(), (float)m_pDmgStars[0]->GetYPos(), 0 };
-	m_flDmgStarsSize = { (float)m_pDmgStars[0]->GetWide(), (float)m_pDmgStars[0]->GetTall(), 0 };
+	m_vecScoreEffectPos = { (float)m_pScoreEffect->GetXPos(), (float)m_pScoreEffect->GetYPos(), 0 };
+	m_vecScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
+	m_vecScoreMarkPos = { (float)m_pScoreMark->GetXPos(), (float)m_pScoreMark->GetYPos(), 0 };
+	m_vecDmgStarsPos = { (float)m_pDmgStars[0]->GetXPos(), (float)m_pDmgStars[0]->GetYPos(), 0 };
+	m_vecDmgStarsSize = { (float)m_pDmgStars[0]->GetWide(), (float)m_pDmgStars[0]->GetTall(), 0 };
 
 	m_pScoreMark->SetVisible(false);
 	m_pScoreEffect->SetVisible(false);
@@ -107,11 +107,11 @@ void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
 	StartFade(panel, true, 0.2, 0.3);
 }
 void CCfefxPanel::ShowScoreEffect() {
-	m_pScoreEffect->SetBounds(m_flScoreEffectPos.x, m_flScoreEffectPos.y, m_flScoreEffectSize.x, m_flScoreEffectSize.y);
+	m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
 	StartFade(m_pScoreEffect, true, 0.2);
 	float pos[3], size[3];
-	(m_flScoreMarkPos * 1.05).CopyToArray(pos);
-	(m_flScoreEffectSize * 1.2).CopyToArray(size);
+	(m_vecScoreMarkPos * 1.05).CopyToArray(pos);
+	(m_vecScoreEffectSize * 1.2).CopyToArray(size);
 	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "position", pos, 2, 0.2, 0.5, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "size", size, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	StartFade(m_pScoreEffect, false, 0.3, 0.9);
@@ -119,47 +119,60 @@ void CCfefxPanel::ShowScoreEffect() {
 		m_pScoreMark->SetVisible(true);
 	vgui::GetAnimationController()->StartAnimationSequence(this, "ScoreMarkAnim");
 }
-void CCfefxPanel::ShowScoreMark(int& iDmg) {
+
+void CCfefxPanel::AddDmg(int iDmg)
+{
+	m_iDmg += iDmg;
+}
+void CCfefxPanel::OnThink()
+{
+	//伤害小于阈值不触发
 	int i = gCVars.pCfefxMaxDmg->value / 10;
-	if (iDmg > i) {
-		int a = iDmg / i;
-		//防止重复触发
-		if (a == iDmgTimes || a == 0)
-			return;
-		iDmgTimes = a;
-		if (a > 9) {
-			PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
-			ShowScoreEffect();
-			Reset();
-			iDmg = 0;
-			return;
+	if (m_iDmg < i)
+		return;
+	//倍数
+	int multiples = m_iDmg / i;
+	//防止同一倍数重复触发
+	if (multiples == m_iDmgTimes || multiples == 0)
+		return;
+	m_iDmgTimes = multiples;
+	//大于9
+	if (multiples >= 10)
+	{
+		PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
+		ShowScoreEffect();
+		Reset();
+	}
+	else if (multiples <= 4) //小于5
+	{
+		if (m_pDmgMarks[0]->GetAlpha() != 0)
+			m_pDmgMarks[0]->SetAlpha(0);
+		for (auto iter = m_pDmgMarks.begin() + 1; VecPos(*iter) <= multiples; iter++) {
+			ShowDmgMark(*iter);
 		}
-		if (a < 5) {
-			if (m_pDmgMarks[0]->GetAlpha() != 0)
-				m_pDmgMarks[0]->SetAlpha(0);
-			for (auto iter = m_pDmgMarks.begin() + a; iter != m_pDmgMarks.end(); iter++) {
-				(*iter)->SetAlpha(0);
-			}
-			for (auto iter = m_pDmgMarks.begin() + 1; VecPos(*iter) <= a; iter++) {
-				ShowDmgMark(*iter);
-			}
+	}
+	else if (multiples >= 5 && multiples <= 9) //5-9
+	{
+		//先隐藏后面的
+		if (m_pDmgMarks[0]->GetAlpha() == 0) {
+			//上次伤害少于500
+			for (auto it = m_pDmgMarks.begin(); it != m_pDmgMarks.end(); it++)
+				(*it)->SetAlpha(0);
+
 		}
 		else {
-			//先隐藏后面的
-			if (m_pDmgMarks[0]->GetAlpha() == 0) {
-				//上次伤害少于500
-				for (auto it = m_pDmgMarks.begin(); it != m_pDmgMarks.end(); it++)
-					(*it)->SetAlpha(0);
-			}
-			else { 
-				//上次伤害高于500
-				for (auto it = m_pDmgMarks.begin() + a - 4; it != m_pDmgMarks.end(); it++)
-					(*it)->SetAlpha(0);
-			}
-			//再显示前面的
-			for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < a - 4 && iter != m_pDmgMarks.end(); iter++)
-				ShowDmgMark(*iter);
+			//上次伤害高于500
+			for (auto it = m_pDmgMarks.begin() + multiples - 4; it != m_pDmgMarks.end(); it++)
+				(*it)->SetAlpha(0);
 		}
+		//再显示前面的
+		for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < multiples - 4 && iter != m_pDmgMarks.end(); iter++)
+			ShowDmgMark(*iter);
+	}
+	//防止动画执行失败强制显示
+	for (auto it = m_pDmgMarks.begin() + 2; it != m_pDmgMarks.end(); it++) {
+		if ((*it)->GetAlpha() > (*(it - 1))->GetAlpha())
+			(*(it - 1))->SetAlpha(255);
 	}
 }
 
@@ -192,7 +205,8 @@ void CCfefxPanel::Reset() {
 		(*iter)->SetAlpha(0);
 	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++)
 		(*iter)->SetAlpha(0);
-	iDmgTimes = 0;
+	m_iDmgTimes = 0;
+	m_iDmg = 0;
 }
 
 void CCfefxPanel::ShowPanel(bool state) {
