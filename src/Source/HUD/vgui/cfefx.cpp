@@ -22,6 +22,8 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	//gCVars.pCfefxKillTime = CREATE_CVAR("cl_cfefx_time", "1", FCVAR_VALUE, nullptr);
 	gCVars.pCfefxSoundVolume = CREATE_CVAR("cl_cfefx_volume", "0.2", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 1); });
 
+	m_iDmg = 0;
+	m_iDmgTimes = 0;
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
 	m_pScoreEffect = new vgui::ImagePanel(this, "ScoreEffect");
 	m_pDmgMarks = {
@@ -48,6 +50,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	m_vecDmgStarsPos = { (float)m_pDmgStars[0]->GetXPos(), (float)m_pDmgStars[0]->GetYPos(), 0 };
 	m_vecDmgStarsSize = { (float)m_pDmgStars[0]->GetWide(), (float)m_pDmgStars[0]->GetTall(), 0 };
 
+	SetVisible(false);
 	m_pScoreMark->SetVisible(false);
 	m_pScoreEffect->SetVisible(false);
 	for (auto iter = m_pDmgMarks.begin(); iter != m_pDmgMarks.end(); iter++) {
@@ -123,6 +126,7 @@ void CCfefxPanel::ShowScoreEffect() {
 void CCfefxPanel::AddDmg(int iDmg)
 {
 	m_iDmg += iDmg;
+	ShowPanel(true);
 }
 void CCfefxPanel::OnThink()
 {
