@@ -7,7 +7,7 @@
 
 #include "local.h"
 #include "vguilocal.h"
-
+#include "hud.h"
 #include "Viewport.h"
 #include "cfefx.h"
 
@@ -126,11 +126,23 @@ void CCfefxPanel::ShowScoreEffect() {
 
 void CCfefxPanel::AddDmg(int iDmg)
 {
-	m_iDmg += iDmg;
+	if (iDmg > 0)
+		m_iDmg += iDmg;
 	ShowPanel(true);
 }
 void CCfefxPanel::OnThink()
 {
+	if (!gClientData)
+	{
+		ShowPanel(false);
+		return;
+	}
+	if (GetBaseViewPort()->IsInSpectate() ||
+		GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS) ||
+		gClientData->health <= 0)
+	{
+		return;
+	}
 	//伤害小于阈值不触发
 	int i = gCVars.pCfefxMaxDmg->value / 10;
 	if (m_iDmg < i)
@@ -206,8 +218,6 @@ void CCfefxPanel::OnThink()
 
 void CCfefxPanel::Reset() {
 	ShowPanel(true);
-	m_pScoreEffect->SetAlpha(0);
-	m_pScoreMark->SetAlpha(0);
 	for (auto iter = m_pDmgMarks.begin(); iter != m_pDmgMarks.end(); iter++)
 		(*iter)->SetAlpha(0);
 	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++)

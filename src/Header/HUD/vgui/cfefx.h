@@ -4,6 +4,7 @@
 #include <vgui_controls/EditablePanel.h>
 #include "IViewportPanel.h"
 
+extern const clientdata_t* gClientData;
 class CCfefxPanel : public vgui::EditablePanel, public IViewportPanel {
 public:
 	DECLARE_CLASS_SIMPLE(CCfefxPanel, vgui::EditablePanel);
