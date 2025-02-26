@@ -4,13 +4,39 @@
 #include <vgui_controls/EditablePanel.h>
 #include "IViewportPanel.h"
 
+#pragma region Class CDmgMarkItem
+class CDmgMarkItem : public vgui::EditablePanel
+{
+public:
+	DECLARE_CLASS_SIMPLE(CDmgMarkItem, vgui::EditablePanel);
+	CDmgMarkItem(Panel* parent, const char* name, int index);
+	virtual void ApplySchemeSettings(vgui::IScheme* pScheme) override;
+	virtual void ApplySettings(KeyValues* inResourceData) override;
+	virtual void ShowPanel(bool state);
+	virtual void SetImage(const char *imageName);
+	void SetDmgMultiples(int multiples);
+
+private:
+	enum DmgMarkType
+	{
+		ONE_HUNDRED,
+		FIVE_HUNDRED
+	};
+
+	int m_iDmgMarkType;
+	int m_iDmgMultiples = 0;
+	vgui::ImagePanel* m_pDmgMark = nullptr;
+};
+#pragma endregion
+
+#pragma region Class CfefxPanel
 extern const clientdata_t* gClientData;
 class CCfefxPanel : public vgui::EditablePanel, public IViewportPanel {
 public:
 	DECLARE_CLASS_SIMPLE(CCfefxPanel, vgui::EditablePanel);
 	CCfefxPanel();
 	virtual void ApplySchemeSettings(vgui::IScheme* pScheme) override;
-	//virtual void ApplySettings(KeyValues* inResourceData) override;
+	virtual void ApplySettings(KeyValues* inResourceData) override;
 	// IViewportPanel overrides
 	virtual const char* GetName() override;
 	virtual void Reset() override;
@@ -24,11 +50,11 @@ public:
 
 private:
 	//void ShowKillMark(wchar_t* killer);
-	void StartFade(vgui::ImagePanel* panel, bool state, float fadetime, float = 0);
+	void StartFade(vgui::Panel* panel, bool state, float fadetime, float = 0);
 	void PlaySoundByFmod(const char* name, float volume);
-	void ShowDmgMark(vgui::ImagePanel* panel);
+	void ShowDmgMark(CDmgMarkItem* panel);
 	void ShowScoreEffect();
-	int VecPos(vgui::ImagePanel* panel);
+	int VecPos(CDmgMarkItem* panel);
 
 	int m_iDmgTimes;
 	int m_iDmg;
@@ -42,7 +68,7 @@ private:
 	vgui::ImagePanel* m_pScoreEffect = nullptr;
 	//vgui::ImagePanel* m_pKillMark = nullptr;
 
-	std::array<vgui::ImagePanel*, 5> m_pDmgMarks;
+	std::array<CDmgMarkItem*, 5> m_pDmgMarks;
 	std::array<vgui::ImagePanel*, 5> m_pDmgStars;
 	//std::array<const char*, 6> m_szKillMarks = {
 	// "abcenchance/tga/cfefx/badge_multi1",
@@ -61,14 +87,16 @@ private:
 		"StarThreeAnim",
 		"StarFourAnim"
 	};
-	std::array<const char*, 5> m_szMarkAnims = {
-		"DmgMarkFiveFade",
-		"DmgMarkOneFade",
-		"DmgMarkTwoFade",
-		"DmgMarkThreeFade",
-		"DmgMarkFourFade"
-	};
+	//std::array<const char*, 5> m_szMarkAnims = {
+	//	"DmgMarkFiveFade",
+	//	"DmgMarkOneFade",
+	//	"DmgMarkTwoFade",
+	//	"DmgMarkThreeFade",
+	//	"DmgMarkFourFade"
+	//};
 
 	FModEngine::CFModSound m_pSound;
 	FModEngine::CFModChannel m_pChannel;
 };
+#pragma endregion
+

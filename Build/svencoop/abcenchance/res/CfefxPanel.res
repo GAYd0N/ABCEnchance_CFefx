@@ -114,7 +114,7 @@
 	}
 	"DmgMarkFive"
 	{
-		"ControlName"		"ImagePanel"
+		"ControlName"		"CDmgMarkItem"
 		"fieldName"			"DmgMarkFive"
 		"xpos"				"r44"
 		"ypos"				"c-122"
@@ -128,7 +128,7 @@
 	}
 	"DmgMarkOne"
 	{
-		"ControlName"		"ImagePanel"
+		"ControlName"		"CDmgMarkItem"
 		"fieldName"			"DmgMarkOne"
 		"xpos"				"r44"
 		"ypos"				"c-98"
@@ -142,7 +142,7 @@
 	}
 	"DmgMarkTwo"
 	{
-		"ControlName"		"ImagePanel"
+		"ControlName"		"CDmgMarkItem"
 		"fieldName"			"DmgMarkTwo"
 		"xpos"				"r44"
 		"ypos"				"c-74"
@@ -156,7 +156,7 @@
 	}
 	"DmgMarkThree"
 	{
-		"ControlName"		"ImagePanel"
+		"ControlName"		"CDmgMarkItem"
 		"fieldName"			"DmgMarkThree"
 		"xpos"		 		"r44"
 		"ypos"		 		"c-50"
@@ -170,7 +170,7 @@
 	}
 	"DmgMarkFour"
 	{
-		"ControlName"		"ImagePanel"
+		"ControlName"		"CDmgMarkItem"
 		"fieldName"			"DmgMarkFour"
 		"xpos"				"r44"
 		"ypos"				"c-26"

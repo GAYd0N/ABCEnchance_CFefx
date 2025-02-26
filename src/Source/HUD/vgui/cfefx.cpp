@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "metahook.h"
 
+#include <vgui/IScheme2.h>
 #include "soundengine.h"
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
@@ -13,6 +14,7 @@
 
 #define VIEWPORT_CFEFXPANEL_NAME "CfefxPanel"
 
+#pragma region Class CfefxPanel
 CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	SetProportional(true);
 	SetKeyBoardInputEnabled(false);
@@ -27,11 +29,11 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
 	m_pScoreEffect = new vgui::ImagePanel(this, "ScoreEffect");
 	m_pDmgMarks = {
-		new vgui::ImagePanel(this, "DmgMarkFive"),
-		new vgui::ImagePanel(this, "DmgMarkOne"),
-		new vgui::ImagePanel(this, "DmgMarkTwo"),
-		new vgui::ImagePanel(this, "DmgMarkThree"),
-		new vgui::ImagePanel(this, "DmgMarkFour")
+		new CDmgMarkItem(this, "DmgMarkFive", 0),
+		new CDmgMarkItem(this, "DmgMarkOne", 1),
+		new CDmgMarkItem(this, "DmgMarkTwo", 2),
+		new CDmgMarkItem(this, "DmgMarkThree", 3),
+		new CDmgMarkItem(this, "DmgMarkFour", 4)
 	};
 	m_pDmgStars = {
 		new vgui::ImagePanel(this, "StarFive"),
@@ -68,8 +70,12 @@ void CCfefxPanel::ApplySchemeSettings(vgui::IScheme* pScheme) {
 	SetBgColor(Color(0, 0, 0, 0));
 }
 
+void CCfefxPanel::ApplySettings(KeyValues* inResourceData) {
+	BaseClass::ApplySettings(inResourceData);
+
+}
 //true淡入显示，false淡出隐藏
-inline void CCfefxPanel::StartFade(vgui::ImagePanel* panel, bool state, float fadetime, float delaytime) {
+inline void CCfefxPanel::StartFade(vgui::Panel* panel, bool state, float fadetime, float delaytime) {
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
 	panel->SetAlpha(state ? 0 : 255);
@@ -92,23 +98,18 @@ void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
 	soundSystem->PlaySound(FMOD_CHANNEL_FREE, m_pSound, false, m_pChannel);
 	m_pChannel.SetVolume(volume);
 }
-void CCfefxPanel::ShowDmgMark(vgui::ImagePanel* panel) {
+void CCfefxPanel::ShowDmgMark(CDmgMarkItem* panel) {
 	if (!panel)
 		return;
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
-	if (panel->GetAlpha() != 0)
-	{
-		panel->SetAlpha(255); 
-		return;
-	}
 	int p = VecPos(panel);
 	auto star = m_pDmgStars[p];
 	if (!star->IsVisible())
 		star->SetVisible(true);
 	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[p]);
-	vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
-	//StartFade(panel, true, 0.2, 0.3);
+	//vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
+	StartFade(panel, true, 0.2, 0.3);
 }
 void CCfefxPanel::ShowScoreEffect() {
 	m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
@@ -153,44 +154,33 @@ void CCfefxPanel::OnThink()
 	if (multiples == m_iDmgTimes || multiples == 0)
 		return;
 	m_iDmgTimes = multiples;
+	int start = 0;
+	int end = 0;
 	//大于9
 	if (multiples >= 10)
 	{
 		PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
 		ShowScoreEffect();
 		Reset();
+		return;
 	}
 	else if (multiples <= 4) //小于5
 	{
-		if (m_pDmgMarks[0]->GetAlpha() != 0)
-			m_pDmgMarks[0]->SetAlpha(0);
-		for (auto iter = m_pDmgMarks.begin() + 1; VecPos(*iter) <= multiples; iter++) {
-			ShowDmgMark(*iter);
-		}
+		start = 1;
+		end = multiples;
 	}
-	else if (multiples >= 5 && multiples <= 9) //5-9
+	else
 	{
-		//先隐藏后面的
-		if (m_pDmgMarks[0]->GetAlpha() == 0) {
-			//上次伤害少于500
-			for (auto it = m_pDmgMarks.begin(); it != m_pDmgMarks.end(); it++)
-				(*it)->SetAlpha(0);
+		start = 0;
+		end = multiples - 4;
+	}
 
-		}
-		else {
-			//上次伤害高于500
-			for (auto it = m_pDmgMarks.begin() + multiples - 4; it != m_pDmgMarks.end(); it++)
-				(*it)->SetAlpha(0);
-		}
-		//再显示前面的
-		for (auto iter = m_pDmgMarks.begin(); VecPos(*iter) < multiples - 4 && iter != m_pDmgMarks.end(); iter++)
-			ShowDmgMark(*iter);
+	//执行动画
+	for (int i = start; i < end; i++)
+	{
+		ShowDmgMark(m_pDmgMarks[i]);
 	}
-	//防止动画执行失败强制显示
-	for (auto it = m_pDmgMarks.begin() + 2; it != m_pDmgMarks.end(); it++) {
-		if ((*it)->GetAlpha() > (*(it - 1))->GetAlpha()) 
-			(*(it - 1))->SetAlpha(255);
-	}
+
 }
 
 //TODO
@@ -243,6 +233,58 @@ void CCfefxPanel::SetParent(vgui::VPANEL parent) {
 const char* CCfefxPanel::GetName() {
 	return VIEWPORT_CFEFXPANEL_NAME;
 }
-inline int CCfefxPanel::VecPos(vgui::ImagePanel* panel) {
+inline int CCfefxPanel::VecPos(CDmgMarkItem* panel) {
 	return panel ? std::distance(m_pDmgMarks.begin(), std::find(m_pDmgMarks.begin(), m_pDmgMarks.end(), panel)) : 0;
 }
+#pragma endregion
+
+#pragma region Class CDmgMarkItem
+CDmgMarkItem::CDmgMarkItem(Panel* parent, const char* name, int index) : BaseClass(parent, name)
+{
+	m_pDmgMark = new vgui::ImagePanel(this, "DmgMark");
+	m_pDmgMark->SetShouldScaleImage(true);
+
+	SetVisible(true);
+	if (index == 0)
+		m_iDmgMarkType = FIVE_HUNDRED;
+	else
+		m_iDmgMarkType = ONE_HUNDRED;
+}
+
+void CDmgMarkItem::ApplySchemeSettings(vgui::IScheme* pScheme) {
+	BaseClass::ApplySchemeSettings(pScheme);
+	SetBgColor(Color(0, 0, 0, 0));
+	m_pDmgMark->SetDrawColor(Color(255, 255, 255, 255));
+}
+
+void CDmgMarkItem::ApplySettings(KeyValues* inResourceData) {
+	BaseClass::ApplySettings(inResourceData);
+	const char* imageName = inResourceData->GetString("image", nullptr);
+	if (*imageName)
+	{
+		SetImage(imageName);
+	}
+}
+
+void CDmgMarkItem::ShowPanel(bool state) {
+	if (state == IsVisible())
+		return;
+	SetVisible(state);
+}
+
+void CDmgMarkItem::SetImage(const char* imageName)
+{
+	m_pDmgMark->SetImage(imageName);
+	m_pDmgMark->SetTall(GetTall());
+	m_pDmgMark->SetWide(GetWide());
+}
+
+void CDmgMarkItem::SetDmgMultiples(int multiples)
+{
+	if (multiples >= 0)
+		m_iDmgMultiples = multiples;
+}
+
+#pragma endregion
+
+
