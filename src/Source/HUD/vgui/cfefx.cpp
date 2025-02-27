@@ -19,28 +19,38 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	SetProportional(true);
 	SetKeyBoardInputEnabled(false);
 	SetMouseInputEnabled(false);
+
 	gCVars.pCfefxEnable = CREATE_CVAR("cl_cfefx", "1", FCVAR_VALUE, nullptr);
-	gCVars.pCfefxMaxDmg = CREATE_CVAR("cl_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<int>(cvar->value, 10, 10000); });
+	pCfefxMaxDmg = CREATE_CVAR("cl_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<int>(cvar->value, 10, 10000000); });
+	pCfefxSoundVolume = CREATE_CVAR("cl_cfefx_volume", "20", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 100); });
 	//gCVars.pCfefxKillTime = CREATE_CVAR("cl_cfefx_time", "1", FCVAR_VALUE, nullptr);
-	gCVars.pCfefxSoundVolume = CREATE_CVAR("cl_cfefx_volume", "0.2", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 1); });
 
 	m_iDmg = 0;
-	m_iDmgTimes = 0;
+	m_iDmgMultiples = 0;
+
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
 	m_pScoreEffect = new vgui::ImagePanel(this, "ScoreEffect");
 	m_pDmgMarks = {
-		new CDmgMarkItem(this, "DmgMarkFive", 0),
-		new CDmgMarkItem(this, "DmgMarkOne", 1),
-		new CDmgMarkItem(this, "DmgMarkTwo", 2),
-		new CDmgMarkItem(this, "DmgMarkThree", 3),
-		new CDmgMarkItem(this, "DmgMarkFour", 4)
+		new vgui::ImagePanel(this, "DmgMarkOne"),
+		new vgui::ImagePanel(this, "DmgMarkTwo"),
+		new vgui::ImagePanel(this, "DmgMarkThree"),
+		new vgui::ImagePanel(this, "DmgMarkFour"),
+		new vgui::ImagePanel(this, "DmgMarkFive"),
+		new vgui::ImagePanel(this, "DmgMarkSix"),
+		new vgui::ImagePanel(this, "DmgMarkSeven"),
+		new vgui::ImagePanel(this, "DmgMarkEight"),
+		new vgui::ImagePanel(this, "DmgMarkNine")
 	};
 	m_pDmgStars = {
-		new vgui::ImagePanel(this, "StarFive"),
 		new vgui::ImagePanel(this, "StarOne"),
 		new vgui::ImagePanel(this, "StarTwo"),
 		new vgui::ImagePanel(this, "StarThree"),
-		new vgui::ImagePanel(this, "StarFour")
+		new vgui::ImagePanel(this, "StarFour"),
+		new vgui::ImagePanel(this, "StarFive"),
+		new vgui::ImagePanel(this, "StarSix"),
+		new vgui::ImagePanel(this, "StarSeven"),
+		new vgui::ImagePanel(this, "StarEight"),
+		new vgui::ImagePanel(this, "StarNine"),
 	};
 
 	LoadControlSettings(VGUI2_ROOT_DIR "CfefxPanel.res");
@@ -49,6 +59,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	m_vecScoreEffectPos = { (float)m_pScoreEffect->GetXPos(), (float)m_pScoreEffect->GetYPos(), 0 };
 	m_vecScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
 	m_vecScoreMarkPos = { (float)m_pScoreMark->GetXPos(), (float)m_pScoreMark->GetYPos(), 0 };
+	m_vecScoreMarkSize = { (float)m_pScoreMark->GetWide(), (float)m_pScoreMark->GetTall(), 0 };
 	m_vecDmgStarsPos = { (float)m_pDmgStars[0]->GetXPos(), (float)m_pDmgStars[0]->GetYPos(), 0 };
 	m_vecDmgStarsSize = { (float)m_pDmgStars[0]->GetWide(), (float)m_pDmgStars[0]->GetTall(), 0 };
 
@@ -98,28 +109,41 @@ void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
 	soundSystem->PlaySound(FMOD_CHANNEL_FREE, m_pSound, false, m_pChannel);
 	m_pChannel.SetVolume(volume);
 }
-void CCfefxPanel::ShowDmgMark(CDmgMarkItem* panel) {
-	if (!panel)
+
+void CCfefxPanel::UpdateDmgMark(int index) {
+	int p = index;
+	if (p > DMGMARK_ARRAY_ENDINDEX || !m_pDmgMarks[p])
 		return;
+
+	auto panel = m_pDmgMarks[p];
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
-	int p = VecPos(panel);
+
+	if (panel->GetAlpha() != 0)
+		return;
+
 	auto star = m_pDmgStars[p];
 	if (!star->IsVisible())
 		star->SetVisible(true);
+
+	ResetDmgMark(p);
+
 	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[p]);
-	//vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
-	StartFade(panel, true, 0.2, 0.3);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
 }
-void CCfefxPanel::ShowScoreEffect() {
-	m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
+
+void CCfefxPanel::UpdateScoreEffect() {
+	ResetScoreEffect();
 	StartFade(m_pScoreEffect, true, 0.2);
+
 	float pos[3], size[3];
 	(m_vecScoreMarkPos * 1.05).CopyToArray(pos);
 	(m_vecScoreEffectSize * 1.2).CopyToArray(size);
+
 	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "position", pos, 2, 0.2, 0.5, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "size", size, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	StartFade(m_pScoreEffect, false, 0.3, 0.9);
+
 	if (!m_pScoreMark->IsVisible())
 		m_pScoreMark->SetVisible(true);
 	vgui::GetAnimationController()->StartAnimationSequence(this, "ScoreMarkAnim");
@@ -131,6 +155,7 @@ void CCfefxPanel::AddDmg(int iDmg)
 		m_iDmg += iDmg;
 	ShowPanel(true);
 }
+
 void CCfefxPanel::OnThink()
 {
 	if (!gClientData)
@@ -142,45 +167,60 @@ void CCfefxPanel::OnThink()
 		GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS) ||
 		gClientData->health <= 0)
 	{
-		return;
-	}
-	//伤害小于阈值不触发
-	int i = gCVars.pCfefxMaxDmg->value / 10;
-	if (m_iDmg < i)
-		return;
-	//倍数
-	int multiples = m_iDmg / i;
-	//防止同一倍数重复触发
-	if (multiples == m_iDmgTimes || multiples == 0)
-		return;
-	m_iDmgTimes = multiples;
-	int start = 0;
-	int end = 0;
-	//大于9
-	if (multiples >= 10)
-	{
-		PlaySoundByFmod(m_szKillSound, gCVars.pCfefxSoundVolume->value);
-		ShowScoreEffect();
 		Reset();
 		return;
 	}
-	else if (multiples <= 4) //小于5
+	//伤害小于阈值不触发
+	int i = static_cast<int>(pCfefxMaxDmg->value) / 10;
+	if (m_iDmg < i)
+		return;
+
+	//倍数
+	uint multiples = m_iDmg / i;
+
+	//防止同一倍数重复触发
+	if (multiples == m_iDmgMultiples || multiples == 0)
+		return;
+
+	m_iDmgMultiples = multiples;
+
+	//大于9
+	if (multiples >= 10)
 	{
-		start = 1;
-		end = multiples;
+		m_iDmgMultiples = 0;
+		m_iDmg = 0;
+
+		for (uint i = 0; i < m_pDmgMarks.size(); i++)
+			ResetDmgMark(i);
+
+		PlaySoundByFmod(m_szKillSound, pCfefxSoundVolume->value);
+		UpdateScoreEffect();
+
+		return;
+	}
+
+	uint x = 0;
+	uint y = 0;
+	uint z = 0;
+
+	if (multiples < 5)
+	{
+		x = 4;
+		y = DMGMARK_ARRAY_ENDINDEX;
+		z = 0;
 	}
 	else
 	{
-		start = 0;
-		end = multiples - 4;
+		x = 0;
+		y = 4;
+		z = 4;
 	}
 
-	//执行动画
-	for (int i = start; i < end; i++)
-	{
-		ShowDmgMark(m_pDmgMarks[i]);
-	}
-
+	for (uint i = x; i < y; i++)
+		ResetDmgMark(i);
+	
+	for (uint i = z; i < multiples; i++)
+		UpdateDmgMark(i);
 }
 
 //TODO
@@ -206,14 +246,46 @@ void CCfefxPanel::OnThink()
 //	}
 //}
 
-void CCfefxPanel::Reset() {
-	ShowPanel(true);
-	for (auto iter = m_pDmgMarks.begin(); iter != m_pDmgMarks.end(); iter++)
-		(*iter)->SetAlpha(0);
-	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++)
-		(*iter)->SetAlpha(0);
-	m_iDmgTimes = 0;
+void CCfefxPanel::Reset() 
+{
+	for (uint i = 0; i < DMGMARK_ARRAY_ENDINDEX; i++)
+		ResetDmgMark(i);
+
+	ResetScoreEffect();
+
+	m_iDmgMultiples = 0;
 	m_iDmg = 0;
+}
+
+void CCfefxPanel::ResetDmgMark(int index)
+{
+	// 停止动画并还原状态
+	vgui::GetAnimationController()->StopAnimationSequence(this, m_szMarkAnims[index]);
+	m_pDmgMarks[index]->SetAlpha(0);
+
+	vgui::GetAnimationController()->StopAnimationSequence(this, m_szStarAnims[index]);
+	m_pDmgStars[index]->SetAlpha(0);
+	m_pDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
+	m_pDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
+}
+
+void CCfefxPanel::ResetScoreEffect()
+{
+	if (m_pScoreEffect->GetAlpha() != 0 || 
+		m_pScoreEffect->GetXPos() != m_vecScoreEffectPos.x ||
+		m_pScoreMark->GetAlpha() != 0 ||
+		m_pScoreMark->GetXPos() != m_vecScoreMarkPos.x)
+	{
+		m_pScoreMark->SetAlpha(0);
+		m_pScoreMark->SetBounds(m_vecScoreMarkPos.x, m_vecScoreMarkPos.y, m_vecScoreMarkSize.x, m_vecScoreMarkSize.y);
+
+		m_pScoreEffect->SetAlpha(0);
+		m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
+
+		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreEffect);
+		vgui::GetAnimationController()->StopAnimationSequence(this, "ScoreMarkAnim");
+
+	}
 }
 
 void CCfefxPanel::ShowPanel(bool state) {
@@ -232,57 +304,6 @@ void CCfefxPanel::SetParent(vgui::VPANEL parent) {
 }
 const char* CCfefxPanel::GetName() {
 	return VIEWPORT_CFEFXPANEL_NAME;
-}
-inline int CCfefxPanel::VecPos(CDmgMarkItem* panel) {
-	return panel ? std::distance(m_pDmgMarks.begin(), std::find(m_pDmgMarks.begin(), m_pDmgMarks.end(), panel)) : 0;
-}
-#pragma endregion
-
-#pragma region Class CDmgMarkItem
-CDmgMarkItem::CDmgMarkItem(Panel* parent, const char* name, int index) : BaseClass(parent, name)
-{
-	m_pDmgMark = new vgui::ImagePanel(this, "DmgMark");
-	m_pDmgMark->SetShouldScaleImage(true);
-
-	SetVisible(true);
-	if (index == 0)
-		m_iDmgMarkType = FIVE_HUNDRED;
-	else
-		m_iDmgMarkType = ONE_HUNDRED;
-}
-
-void CDmgMarkItem::ApplySchemeSettings(vgui::IScheme* pScheme) {
-	BaseClass::ApplySchemeSettings(pScheme);
-	SetBgColor(Color(0, 0, 0, 0));
-	m_pDmgMark->SetDrawColor(Color(255, 255, 255, 255));
-}
-
-void CDmgMarkItem::ApplySettings(KeyValues* inResourceData) {
-	BaseClass::ApplySettings(inResourceData);
-	const char* imageName = inResourceData->GetString("image", nullptr);
-	if (*imageName)
-	{
-		SetImage(imageName);
-	}
-}
-
-void CDmgMarkItem::ShowPanel(bool state) {
-	if (state == IsVisible())
-		return;
-	SetVisible(state);
-}
-
-void CDmgMarkItem::SetImage(const char* imageName)
-{
-	m_pDmgMark->SetImage(imageName);
-	m_pDmgMark->SetTall(GetTall());
-	m_pDmgMark->SetWide(GetWide());
-}
-
-void CDmgMarkItem::SetDmgMultiples(int multiples)
-{
-	if (multiples >= 0)
-		m_iDmgMultiples = multiples;
 }
 
 #pragma endregion

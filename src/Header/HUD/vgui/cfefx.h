@@ -4,32 +4,11 @@
 #include <vgui_controls/EditablePanel.h>
 #include "IViewportPanel.h"
 
-#pragma region Class CDmgMarkItem
-class CDmgMarkItem : public vgui::EditablePanel
-{
-public:
-	DECLARE_CLASS_SIMPLE(CDmgMarkItem, vgui::EditablePanel);
-	CDmgMarkItem(Panel* parent, const char* name, int index);
-	virtual void ApplySchemeSettings(vgui::IScheme* pScheme) override;
-	virtual void ApplySettings(KeyValues* inResourceData) override;
-	virtual void ShowPanel(bool state);
-	virtual void SetImage(const char *imageName);
-	void SetDmgMultiples(int multiples);
-
-private:
-	enum DmgMarkType
-	{
-		ONE_HUNDRED,
-		FIVE_HUNDRED
-	};
-
-	int m_iDmgMarkType;
-	int m_iDmgMultiples = 0;
-	vgui::ImagePanel* m_pDmgMark = nullptr;
-};
-#pragma endregion
-
 #pragma region Class CfefxPanel
+
+#define DMGMARK_ARRAY_SIZE 9
+#define DMGMARK_ARRAY_ENDINDEX 8
+
 extern const clientdata_t* gClientData;
 class CCfefxPanel : public vgui::EditablePanel, public IViewportPanel {
 public:
@@ -52,15 +31,22 @@ private:
 	//void ShowKillMark(wchar_t* killer);
 	void StartFade(vgui::Panel* panel, bool state, float fadetime, float = 0);
 	void PlaySoundByFmod(const char* name, float volume);
-	void ShowDmgMark(CDmgMarkItem* panel);
-	void ShowScoreEffect();
-	int VecPos(CDmgMarkItem* panel);
+	void UpdateDmgMark(int index);
+	void UpdateScoreEffect();
+	void ResetDmgMark(int index);
+	void ResetScoreEffect();
 
-	int m_iDmgTimes;
+	//cvar_t*	pCfefxKillTime;
+	cvar_t* pCfefxMaxDmg = nullptr;
+	cvar_t* pCfefxSoundVolume = nullptr;
+
+	uint m_iDmgMultiples;
 	int m_iDmg;
+
 	Vector m_vecScoreEffectPos;
 	Vector m_vecScoreEffectSize;
 	Vector m_vecScoreMarkPos;
+	Vector m_vecScoreMarkSize;
 	Vector m_vecDmgStarsPos;
 	Vector m_vecDmgStarsSize;
 
@@ -68,8 +54,8 @@ private:
 	vgui::ImagePanel* m_pScoreEffect = nullptr;
 	//vgui::ImagePanel* m_pKillMark = nullptr;
 
-	std::array<CDmgMarkItem*, 5> m_pDmgMarks;
-	std::array<vgui::ImagePanel*, 5> m_pDmgStars;
+	std::array<vgui::ImagePanel*, 9> m_pDmgMarks;
+	std::array<vgui::ImagePanel*, 9> m_pDmgStars;
 	//std::array<const char*, 6> m_szKillMarks = {
 	// "abcenchance/tga/cfefx/badge_multi1",
 	// "abcenchance/tga/cfefx/badge_multi2",
@@ -80,20 +66,28 @@ private:
 	// };
 
 	const char* m_szKillSound = { "abcenchance/sound/UI_SPECIALKILL2.wav" };
-	std::array<const char*, 5> m_szStarAnims = {
-		"StarFiveAnim",
+	std::array<const char*, 9> m_szStarAnims = {
 		"StarOneAnim",
 		"StarTwoAnim",
 		"StarThreeAnim",
-		"StarFourAnim"
+		"StarFourAnim",
+		"StarFiveAnim",
+		"StarSixAnim",
+		"StarSevenAnim",
+		"StarEightAnim",
+		"StarNineAnim"
 	};
-	//std::array<const char*, 5> m_szMarkAnims = {
-	//	"DmgMarkFiveFade",
-	//	"DmgMarkOneFade",
-	//	"DmgMarkTwoFade",
-	//	"DmgMarkThreeFade",
-	//	"DmgMarkFourFade"
-	//};
+	std::array<const char*, 9> m_szMarkAnims = {
+		"DmgMarkOneFade",
+		"DmgMarkTwoFade",
+		"DmgMarkThreeFade",
+		"DmgMarkFourFade",
+		"DmgMarkFiveFade",
+		"DmgMarkSixFade",
+		"DmgMarkSevenFade",
+		"DmgMarkEightFade",
+		"DmgMarkNineFade"
+	};
 
 	FModEngine::CFModSound m_pSound;
 	FModEngine::CFModChannel m_pChannel;
