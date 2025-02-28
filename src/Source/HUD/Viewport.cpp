@@ -390,10 +390,7 @@ bool CViewport::TextMsg(const char* pszName, int iSize, void* pbuf){
 void CViewport::ShowDeathMsg(bool state){
 	m_pDeahMsg->ShowPanel(state);
 }
-void CViewport::EraseHighLight(cl_entity_t* var, int modelindex){
-	m_pItemHighLightPanel->EraseHighLight(var, modelindex);
-}
-void vgui::CViewport::AddDmg(int iDmg)
+void CViewport::AddDmg(int iDmg)
 {
 	m_pCfefxPanel->AddDmg(iDmg);
 }

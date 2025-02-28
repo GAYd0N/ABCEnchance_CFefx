@@ -123,7 +123,6 @@ public:
 	bool TextMsg(const char* pszName, int iSize, void* pbuf);
 	void ShowDeathMsg(bool state);
 
-	void EraseHighLight(cl_entity_t* var, int modelindex);
 	void AddDmg(int iDmg);
 
 	void ShowMusic(bool state);
