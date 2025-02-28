@@ -260,10 +260,12 @@ void CCfefxPanel::Reset()
 void CCfefxPanel::ResetDmgMark(int index)
 {
 	// 停止动画并还原状态
-	vgui::GetAnimationController()->StopAnimationSequence(this, m_szMarkAnims[index]);
+	vgui::GetAnimationController()->CancelAnimationsForPanel(m_pDmgMarks[index]);
+	//vgui::GetAnimationController()->StopAnimationSequence(this, m_szMarkAnims[index]);
 	m_pDmgMarks[index]->SetAlpha(0);
 
-	vgui::GetAnimationController()->StopAnimationSequence(this, m_szStarAnims[index]);
+	vgui::GetAnimationController()->CancelAnimationsForPanel(m_pDmgStars[index]);
+	//vgui::GetAnimationController()->StopAnimationSequence(this, m_szStarAnims[index]);
 	m_pDmgStars[index]->SetAlpha(0);
 	m_pDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
 	m_pDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
@@ -283,7 +285,7 @@ void CCfefxPanel::ResetScoreEffect()
 		m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
 
 		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreEffect);
-		vgui::GetAnimationController()->StopAnimationSequence(this, "ScoreMarkAnim");
+		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreMark);
 
 	}
 }
