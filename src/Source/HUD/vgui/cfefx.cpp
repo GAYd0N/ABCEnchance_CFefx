@@ -30,7 +30,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
 	m_pScoreEffect = new vgui::ImagePanel(this, "ScoreEffect");
-	m_pDmgMarks = {
+	m_aryDmgMarks = {
 		new vgui::ImagePanel(this, "DmgMarkOne"),
 		new vgui::ImagePanel(this, "DmgMarkTwo"),
 		new vgui::ImagePanel(this, "DmgMarkThree"),
@@ -41,7 +41,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 		new vgui::ImagePanel(this, "DmgMarkEight"),
 		new vgui::ImagePanel(this, "DmgMarkNine")
 	};
-	m_pDmgStars = {
+	m_aryDmgStars = {
 		new vgui::ImagePanel(this, "StarOne"),
 		new vgui::ImagePanel(this, "StarTwo"),
 		new vgui::ImagePanel(this, "StarThree"),
@@ -60,17 +60,17 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	m_vecScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
 	m_vecScoreMarkPos = { (float)m_pScoreMark->GetXPos(), (float)m_pScoreMark->GetYPos(), 0 };
 	m_vecScoreMarkSize = { (float)m_pScoreMark->GetWide(), (float)m_pScoreMark->GetTall(), 0 };
-	m_vecDmgStarsPos = { (float)m_pDmgStars[0]->GetXPos(), (float)m_pDmgStars[0]->GetYPos(), 0 };
-	m_vecDmgStarsSize = { (float)m_pDmgStars[0]->GetWide(), (float)m_pDmgStars[0]->GetTall(), 0 };
+	m_vecDmgStarsPos = { (float)m_aryDmgStars[0]->GetXPos(), (float)m_aryDmgStars[0]->GetYPos(), 0 };
+	m_vecDmgStarsSize = { (float)m_aryDmgStars[0]->GetWide(), (float)m_aryDmgStars[0]->GetTall(), 0 };
 
 	SetVisible(false);
 	m_pScoreMark->SetVisible(false);
 	m_pScoreEffect->SetVisible(false);
-	for (auto iter = m_pDmgMarks.begin(); iter != m_pDmgMarks.end(); iter++) {
+	for (auto iter = m_aryDmgMarks.begin(); iter != m_aryDmgMarks.end(); iter++) {
 		(*iter)->SetVisible(false);
 		(*iter)->SetAlpha(0);
 	}
-	for (auto iter = m_pDmgStars.begin(); iter != m_pDmgStars.end(); iter++) {
+	for (auto iter = m_aryDmgStars.begin(); iter != m_aryDmgStars.end(); iter++) {
 		(*iter)->SetVisible(false);
 		(*iter)->SetAlpha(0);
 	}
@@ -110,26 +110,26 @@ void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
 	m_pChannel.SetVolume(volume);
 }
 
-void CCfefxPanel::UpdateDmgMark(int index) {
-	int p = index;
-	if (p > DMGMARK_ARRAY_ENDINDEX || !m_pDmgMarks[p])
+void CCfefxPanel::UpdateDmgMark(uint index) {
+	uint p = index;
+	if (p > m_aryDmgMarks.size() || !m_aryDmgMarks[p])
 		return;
 
-	auto panel = m_pDmgMarks[p];
+	auto panel = m_aryDmgMarks[p];
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
 
 	if (panel->GetAlpha() != 0)
 		return;
 
-	auto star = m_pDmgStars[p];
+	auto star = m_aryDmgStars[p];
 	if (!star->IsVisible())
 		star->SetVisible(true);
 
 	ResetDmgMark(p);
 
-	vgui::GetAnimationController()->StartAnimationSequence(this, m_szStarAnims[p]);
-	vgui::GetAnimationController()->StartAnimationSequence(this, m_szMarkAnims[p]);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_aryStarAnims[p]);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_aryMarkAnims[p]);
 }
 
 void CCfefxPanel::UpdateScoreEffect() {
@@ -190,7 +190,7 @@ void CCfefxPanel::OnThink()
 		m_iDmgMultiples = 0;
 		m_iDmg = 0;
 
-		for (uint i = 0; i < m_pDmgMarks.size(); i++)
+		for (uint i = 0; i < m_aryDmgMarks.size(); i++)
 			ResetDmgMark(i);
 
 		PlaySoundByFmod(m_szKillSound, pCfefxSoundVolume->value);
@@ -206,7 +206,7 @@ void CCfefxPanel::OnThink()
 	if (multiples < 5)
 	{
 		x = 4;
-		y = DMGMARK_ARRAY_ENDINDEX;
+		y = m_aryDmgMarks.size();
 		z = 0;
 	}
 	else
@@ -223,32 +223,9 @@ void CCfefxPanel::OnThink()
 		UpdateDmgMark(i);
 }
 
-//TODO
-//void CCfefxPanel::ShowKillMark(wchar_t* killer)
-//{
-//	char buffer[32];
-//	Q_UnicodeToUTF8(killer, buffer, 32);
-//	if (!Q_strcmp(buffer, CPlayerInfo::GetPlayerInfo(gEngfuncs.GetLocalPlayer()->index)->GetName()))
-//	{
-//		if (gEngfuncs.GetClientTime() - m_flRestoredTime > gCVars.pCfefxKillTime->value || iKill != -1) {
-//			iKill = -1;
-//			m_pKillMark->SetAlpha(0);
-//			return;
-//		}
-//		else
-//		{
-//			m_flRestoredTime = gEngfuncs.GetClientTime();
-//			iKill++;
-//		}
-//		m_pKillMark->SetAlpha(255);
-//		m_pKillMark->SetImage(m_szKillMarks[std::clamp<int>(iKill, 0, 5)]);
-//		PlaySoundByFmod(m_szKillSound[std::clamp<int>(iKill, 0, 7)], gCVars.pCfefxSoundVolume->value);
-//	}
-//}
-
 void CCfefxPanel::Reset() 
 {
-	for (uint i = 0; i < DMGMARK_ARRAY_ENDINDEX; i++)
+	for (uint i = 0; i < m_aryDmgMarks.size(); i++)
 		ResetDmgMark(i);
 
 	ResetScoreEffect();
@@ -260,15 +237,15 @@ void CCfefxPanel::Reset()
 void CCfefxPanel::ResetDmgMark(int index)
 {
 	// 停止动画并还原状态
-	vgui::GetAnimationController()->CancelAnimationsForPanel(m_pDmgMarks[index]);
+	vgui::GetAnimationController()->CancelAnimationsForPanel(m_aryDmgMarks[index]);
 	//vgui::GetAnimationController()->StopAnimationSequence(this, m_szMarkAnims[index]);
-	m_pDmgMarks[index]->SetAlpha(0);
+	m_aryDmgMarks[index]->SetAlpha(0);
 
-	vgui::GetAnimationController()->CancelAnimationsForPanel(m_pDmgStars[index]);
+	vgui::GetAnimationController()->CancelAnimationsForPanel(m_aryDmgStars[index]);
 	//vgui::GetAnimationController()->StopAnimationSequence(this, m_szStarAnims[index]);
-	m_pDmgStars[index]->SetAlpha(0);
-	m_pDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
-	m_pDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
+	m_aryDmgStars[index]->SetAlpha(0);
+	m_aryDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
+	m_aryDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
 }
 
 void CCfefxPanel::ResetScoreEffect()
@@ -307,6 +284,29 @@ void CCfefxPanel::SetParent(vgui::VPANEL parent) {
 const char* CCfefxPanel::GetName() {
 	return VIEWPORT_CFEFXPANEL_NAME;
 }
+
+//TODO
+//void CCfefxPanel::ShowKillMark(wchar_t* killer)
+//{
+//	char buffer[32];
+//	Q_UnicodeToUTF8(killer, buffer, 32);
+//	if (!Q_strcmp(buffer, CPlayerInfo::GetPlayerInfo(gEngfuncs.GetLocalPlayer()->index)->GetName()))
+//	{
+//		if (gEngfuncs.GetClientTime() - m_flRestoredTime > gCVars.pCfefxKillTime->value || iKill != -1) {
+//			iKill = -1;
+//			m_pKillMark->SetAlpha(0);
+//			return;
+//		}
+//		else
+//		{
+//			m_flRestoredTime = gEngfuncs.GetClientTime();
+//			iKill++;
+//		}
+//		m_pKillMark->SetAlpha(255);
+//		m_pKillMark->SetImage(m_szKillMarks[std::clamp<int>(iKill, 0, 5)]);
+//		PlaySoundByFmod(m_szKillSound[std::clamp<int>(iKill, 0, 7)], gCVars.pCfefxSoundVolume->value);
+//	}
+//}
 
 #pragma endregion
 

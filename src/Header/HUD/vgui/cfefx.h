@@ -6,9 +6,6 @@
 
 #pragma region Class CfefxPanel
 
-#define DMGMARK_ARRAY_SIZE 9
-#define DMGMARK_ARRAY_ENDINDEX 8
-
 extern const clientdata_t* gClientData;
 class CCfefxPanel : public vgui::EditablePanel, public IViewportPanel {
 public:
@@ -31,7 +28,7 @@ private:
 	//void ShowKillMark(wchar_t* killer);
 	void StartFade(vgui::Panel* panel, bool state, float fadetime, float = 0);
 	void PlaySoundByFmod(const char* name, float volume);
-	void UpdateDmgMark(int index);
+	void UpdateDmgMark(uint index);
 	void UpdateScoreEffect();
 	void ResetDmgMark(int index);
 	void ResetScoreEffect();
@@ -54,8 +51,8 @@ private:
 	vgui::ImagePanel* m_pScoreEffect = nullptr;
 	//vgui::ImagePanel* m_pKillMark = nullptr;
 
-	std::array<vgui::ImagePanel*, 9> m_pDmgMarks;
-	std::array<vgui::ImagePanel*, 9> m_pDmgStars;
+	std::array<vgui::ImagePanel*, 9> m_aryDmgMarks;
+	std::array<vgui::ImagePanel*, 9> m_aryDmgStars;
 	//std::array<const char*, 6> m_szKillMarks = {
 	// "abcenchance/tga/cfefx/badge_multi1",
 	// "abcenchance/tga/cfefx/badge_multi2",
@@ -66,7 +63,7 @@ private:
 	// };
 
 	const char* m_szKillSound = { "abcenchance/sound/UI_SPECIALKILL2.wav" };
-	std::array<const char*, 9> m_szStarAnims = {
+	std::array<const char*, 9> m_aryStarAnims = {
 		"StarOneAnim",
 		"StarTwoAnim",
 		"StarThreeAnim",
@@ -77,7 +74,7 @@ private:
 		"StarEightAnim",
 		"StarNineAnim"
 	};
-	std::array<const char*, 9> m_szMarkAnims = {
+	std::array<const char*, 9> m_aryMarkAnims = {
 		"DmgMarkOneFade",
 		"DmgMarkTwoFade",
 		"DmgMarkThreeFade",
