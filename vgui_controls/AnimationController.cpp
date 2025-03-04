@@ -41,6 +41,11 @@ namespace vgui
 		static AnimationController* s_pAnimationController = new AnimationController(NULL);
 		return s_pAnimationController;
 	}
+	AnimationController* GetAnimationControllerEx()
+	{
+		static AnimationController* s_pAnimationControllerEx = new AnimationController(NULL);
+		return s_pAnimationControllerEx;
+	}
 }
 
 //-----------------------------------------------------------------------------
