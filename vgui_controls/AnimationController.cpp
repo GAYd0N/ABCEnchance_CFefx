@@ -31,7 +31,7 @@
 
 using namespace vgui;
 
-static CUtlSymbolTable g_ScriptSymbols(0, 128, true);
+//static CUtlSymbolTable g_ScriptSymbols(0, 128, true);
 
 // singleton accessor for animation controller for use by the vgui controls
 namespace vgui
@@ -41,12 +41,19 @@ namespace vgui
 		static AnimationController* s_pAnimationController = new AnimationController(NULL);
 		return s_pAnimationController;
 	}
+	AnimationController* GetAnimationControllerEx()
+	{
+		static AnimationController* s_pAnimationControllerEx = new AnimationController(NULL);
+		return s_pAnimationControllerEx;
+	}
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-AnimationController::AnimationController(Panel* parent) : BaseClass(parent, NULL)
+AnimationController::AnimationController(Panel* parent) : 
+	BaseClass(parent, NULL), 
+	g_ScriptSymbols(0, 128, true)
 {
 	m_hSizePanel = 0;
 	m_nScreenBounds[0] = m_nScreenBounds[1] = -1;

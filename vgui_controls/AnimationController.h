@@ -15,6 +15,7 @@
 
 #include "tier1/utlsymbol.h"
 #include "tier1/utlvector.h"
+#include <memory>
 
 namespace vgui
 {
@@ -268,11 +269,13 @@ namespace vgui
 
 		VPANEL			m_hSizePanel;
 		int				m_nScreenBounds[4];
+
+		CUtlSymbolTable g_ScriptSymbols;
 	};
 
 	// singleton accessor for use only by other vgui_controls
 	extern AnimationController* GetAnimationController();
-
+	extern AnimationController* GetAnimationControllerEx();
 } // namespace vgui
 
 #endif // ANIMATIONCONTROLLER_H

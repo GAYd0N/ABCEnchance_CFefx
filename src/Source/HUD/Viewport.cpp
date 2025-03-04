@@ -120,32 +120,32 @@ void CViewport::Start(void){
 
 void CViewport::SetParent(VPANEL vPanel){
 	BaseClass::SetParent(vPanel);
-	m_pScorePanel->SetParent(GetVPanel());
-	m_pVotePanel->SetParent(GetVPanel());
-	m_pMOTDPanel->SetParent(GetVPanel());
-	m_pSidePanel->SetParent(GetVPanel());
-	m_pTextMenu->SetParent(GetVPanel());
-	m_pFlashLight->SetParent(GetVPanel());
-	m_pNotice->SetParent(GetVPanel());
-	m_pNoticeCenter->SetParent(GetVPanel());
-	m_pCrossHairPanel->SetParent(GetVPanel());
-	m_pEffectPanel->SetParent(GetVPanel());
-	m_pHealthPanel->SetParent(GetVPanel());
-	m_pAmmoPanel->SetParent(GetVPanel());
-	m_pDmgTiles->SetParent(GetVPanel());
-	m_pGIndicator->SetParent(GetVPanel());
-	m_pDeahMsg->SetParent(GetVPanel());
-#ifdef __HAS_NETEASE_API
-	m_pNeteaseMusic->SetParent(GetVPanel());
-#endif
-	m_pRadar->SetParent(GetVPanel());
-	m_pAmmoStack->SetParent(GetVPanel());
-	m_pItemStack->SetParent(GetVPanel());
-	m_pWeaponStack->SetParent(GetVPanel());
-	m_pWeaponChoose->SetParent(GetVPanel());
-	for (size_t i = 0; i < 32; i++) {
-		m_pPlayerInfoPanels[i]->SetParent(GetVPanel());
-	}
+//	m_pScorePanel->SetParent(GetVPanel());
+//	m_pVotePanel->SetParent(GetVPanel());
+//	m_pMOTDPanel->SetParent(GetVPanel());
+//	m_pSidePanel->SetParent(GetVPanel());
+//	m_pTextMenu->SetParent(GetVPanel());
+//	m_pFlashLight->SetParent(GetVPanel());
+//	m_pNotice->SetParent(GetVPanel());
+//	m_pNoticeCenter->SetParent(GetVPanel());
+//	m_pCrossHairPanel->SetParent(GetVPanel());
+//	m_pEffectPanel->SetParent(GetVPanel());
+//	m_pHealthPanel->SetParent(GetVPanel());
+//	m_pAmmoPanel->SetParent(GetVPanel());
+//	m_pDmgTiles->SetParent(GetVPanel());
+//	m_pGIndicator->SetParent(GetVPanel());
+//	m_pDeahMsg->SetParent(GetVPanel());
+//#ifdef __HAS_NETEASE_API
+//	m_pNeteaseMusic->SetParent(GetVPanel());
+//#endif
+//	m_pRadar->SetParent(GetVPanel());
+//	m_pAmmoStack->SetParent(GetVPanel());
+//	m_pItemStack->SetParent(GetVPanel());
+//	m_pWeaponStack->SetParent(GetVPanel());
+//	m_pWeaponChoose->SetParent(GetVPanel());
+//	for (size_t i = 0; i < 32; i++) {
+//		m_pPlayerInfoPanels[i]->SetParent(GetVPanel());
+//	}
 }
 
 void CViewport::AddNewPanel(IViewportPanel* panel){
@@ -156,6 +156,8 @@ void CViewport::AddNewPanel(IViewportPanel* panel){
 
 void CViewport::Think(void){
 	vgui::GetAnimationController()->UpdateAnimations(gEngfuncs.GetClientTime());
+	vgui::GetAnimationControllerEx()->UpdateAnimations(gEngfuncs.GetClientTime());
+
 #ifdef __HAS_NETEASE_API
 	m_pNeteaseMusic->Think();
 #endif
