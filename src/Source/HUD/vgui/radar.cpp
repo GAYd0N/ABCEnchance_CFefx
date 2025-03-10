@@ -237,13 +237,13 @@ void CRadarPanel::Paint(){
 					continue;
 				}
 				iter->SetVisible(true);
-				//��Ŀ�����
+
 				Vector vecLength = entity->curstate.origin;
 				vecLength -= local->curstate.origin;
 				Vector vecAngle;
 				CMathlib::VectorAngles(vecLength, vecAngle);
 				float nyaw = CMathlib::Q_DEG2RAD(vecAngle[CMathlib::Q_YAW] - local->curstate.angles[CMathlib::Q_YAW] + 90);
-				//���ű����ݶ�0.2������ȡ��������Ļ����ϵ
+
 				std::swap(vecLength.x, vecLength.y);
 				vecLength *= (-1.0f * gCVars.pRadarAvatarScale->value);
 				vecLength.z = 0;
