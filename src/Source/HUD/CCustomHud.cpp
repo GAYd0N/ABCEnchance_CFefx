@@ -21,7 +21,6 @@
 
 #include "indicator.h"
 #include "itemhighlight.h"
-#include "eccobuymenu.h"
 
 #include "vgui_controls/Controls.h"
 
@@ -147,7 +146,7 @@ static int __MsgFunc_CurWeapon(const char* pszName, int iSize, void* pbuf) {
 	int iState = READ_BYTE();
 	if (iState & CAmmoPanel::WEAPONSTATE::VALID) {
 		int iId = READ_SHORT();
-		//sc反编汇后如此
+		//sc??????
 		if (iId == -1) {
 			gWR.DropAllWeapons();
 			return m_pfnCurWeapon(pszName, iSize, pbuf);
@@ -160,7 +159,7 @@ static int __MsgFunc_CurWeapon(const char* pszName, int iSize, void* pbuf) {
 			gCustomHud.SetCurWeapon(nullptr);
 			return m_pfnCurWeapon(pszName, iSize, pbuf);
 		}	
-		//更新弹匣信息
+		//??????
 		pWeapon->iClip = iClip;
 		pWeapon->iClip2 = iClip2;
 		pWeapon->iState = iState;
@@ -484,26 +483,6 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 	BEGIN_READ(pbuf, iSize);
 	int type = READ_BYTE();
 	switch (type) {
-	case CCustomHud::MetaHookMsgType::MHSV_CMD_ECCO_INFO: {
-		buymenuitem_t item;
-		item.id = READ_LONG();
-		item.price = READ_LONG();
-		item.modelindex = READ_LONG();
-		item.sequence = READ_LONG();
-		strcpy_s(item.name, READ_STRING());
-		m_HudEccoBuyMenu.AddInfo(item);
-		break;
-	}
-	case CCustomHud::MetaHookMsgType::MHSV_CMD_ECCO_MENU: {
-		m_HudEccoBuyMenu.MenuList.clear();
-		size_t pageLen = (size_t)READ_BYTE();
-		m_HudEccoBuyMenu.MenuList.resize(pageLen);
-		for (size_t i = 0; i < pageLen; i++) {
-			m_HudEccoBuyMenu.MenuList[i] = READ_LONG();
-		}
-		m_HudEccoBuyMenu.OpenMenu();
-		break;
-	}
 	case CCustomHud::MetaHookMsgType::MHSV_CMD_ABC_CUSTOM: {
 		CCustomHud::ABCCustomMsg type = static_cast<CCustomHud::ABCCustomMsg>(READ_BYTE());
 		switch (type) {
@@ -519,11 +498,11 @@ static int __MsgFunc_MetaHook(const char* pszName, int iSize, void* pbuf) {
 			//CFefx
 			if (gCVars.pCfefxEnable->value > 0)
 				GetBaseViewPort()->AddDmg(iValue);
-			//视角角度
+			//????
 			Vector vecView;
 			gEngfuncs.GetViewAngles(vecView);
 			CMathlib::AngleVectors(vecView, vecView, nullptr, nullptr);
-			//计算我和目标的相对偏移
+			//???????????
 			Vector vecLength;
 			CMathlib::VectorSubtract(vecOrigin, local->curstate.origin, vecLength);
 			vecLength = vecLength.Normalize();
@@ -557,7 +536,6 @@ void(*UserCmd_VoteMenu)(void);
 static void UserCmd_SlotInput(int i) {
 	bool bVisible = gCustomHud.IsTextMenuOpening();
 	gWR.SelectSlot(i, 1, false);
-	m_HudEccoBuyMenu.SlotCallBack(i);
 	if(!bVisible)
 		UserCmd_Slots[i]();
 }
@@ -591,8 +569,6 @@ static void __UserCmd_Slot9(void) {
 static void __UserCmd_Slot10(void) {
 	bool bVisible = gCustomHud.IsTextMenuOpening();
 	gWR.SelectSlot(9, 1, false);
-	m_HudEccoBuyMenu.SlotCallBack(9);
-	m_HudEccoBuyMenu.CloseMenu();
 	if (!bVisible)
 		UserCmd_Slots[9]();
 }
@@ -635,7 +611,6 @@ static void __UserCmd_VoteMenu(void) {
 #pragma region CCustomHud
 void CCustomHud::GL_Init(void){
 	m_HudIndicator.GLInit();
-	m_HudEccoBuyMenu.GLInit();
 #ifdef _DEBUG
 	m_HudCCTV.GLInit();
 #endif
@@ -693,15 +668,14 @@ void CCustomHud::HUD_Init(void){
 	UserCmd_HideScores = HOOK_COMMAND("-showscores", CloseScoreboard);
 	UserCmd_VoteMenu = HOOK_COMMAND("votemenu", VoteMenu);
 
-	gCVars.pDamageScreenFilter = CREATE_CVAR("cl_damageshock", "1", FCVAR_VALUE, nullptr);
-	gCVars.pDamageScreenFactor = CREATE_CVAR("cl_damageshock_factor", "0.015", FCVAR_VALUE, nullptr);
-	gCVars.pDamageScreenBase = CREATE_CVAR("cl_damageshock_base", "15", FCVAR_VALUE, nullptr);
-	gCVars.pDangerHealth = CREATE_CVAR("cl_dangerhealth", "45", FCVAR_VALUE, nullptr);
-	gCVars.pDangerArmor = CREATE_CVAR("cl_dangerarmor", "45", FCVAR_VALUE, nullptr);
+	gCVars.pDamageScreenFilter = CREATE_CVAR("hud_damageshock", "1", FCVAR_VALUE, nullptr);
+	gCVars.pDamageScreenFactor = CREATE_CVAR("hud_damageshock_factor", "0.015", FCVAR_VALUE, nullptr);
+	gCVars.pDamageScreenBase = CREATE_CVAR("hud_damageshock_base", "15", FCVAR_VALUE, nullptr);
+	gCVars.pDangerHealth = CREATE_CVAR("hud_danger_health", "45", FCVAR_VALUE, nullptr);
+	gCVars.pDangerArmor = CREATE_CVAR("hud_danger_armor", "45", FCVAR_VALUE, nullptr);
 
 	m_HudIndicator.Init();
 	gWR.Init();
-	m_HudEccoBuyMenu.Init();
 #ifdef _DEBUG
 	m_HudCCTV.Init();
 #endif
@@ -738,12 +712,10 @@ void CCustomHud::HUD_VidInit(void){
 	}
 	m_HudIndicator.VidInit();
 	gWR.VidInit();
-	m_HudEccoBuyMenu.VidInit();
 
 	m_flCursorSize = GET_SCREEN_PIXEL(true, "Common.CursorSize");
 }
 void CCustomHud::HUD_Draw(float flTime){
-	m_HudEccoBuyMenu.Draw(flTime);
 #ifdef _DEBUG
 	m_HudCCTV.Draw(flTime);
 #endif
@@ -752,7 +724,6 @@ void CCustomHud::HUD_Draw(float flTime){
 void CCustomHud::HUD_Reset(void){
 	m_HudIndicator.Reset();
 	gWR.Reset();
-	m_HudEccoBuyMenu.Reset();
 #ifdef _DEBUG
 	m_HudCCTV.Reset();
 #endif
@@ -784,21 +755,20 @@ void CCustomHud::HUD_UpdateClientData(client_data_t* cdata, float time){
 	}	
 }
 void CCustomHud::HUD_Clear(void){
-	m_HudEccoBuyMenu.Clear();
 	m_HudIndicator.Clear();
 }
 void CCustomHud::IN_MouseEvent(int mstate){
 	auto MouseTest = [&](int mstate, int testBit, vgui::MouseCode enumMouse) {
 		static int s_mousebits = 0;
 		static int s_lastclick = 5;
-		//现在有
+		//???
 		if ((mstate & testBit) != 0) {
-			//之前没有
+			//????
 			if ((s_mousebits & testBit) == 0) {
 				//Press
 				OnMousePressed(enumMouse);
 				//g_pViewPort->OnMousePressed(enumMouse);
-				//加上Bit
+				//??Bit
 				s_mousebits += testBit;
 				if (s_lastclick == enumMouse) {
 					//g_pViewPort->OnMouseDoublePressed(enumMouse);
@@ -808,29 +778,27 @@ void CCustomHud::IN_MouseEvent(int mstate){
 					s_lastclick = enumMouse;
 			}
 		}
-		//现在没有之前有
+		//???????
 		else if ((s_mousebits & testBit) != 0) {
-			//触发Release
+			//??Release
 			s_mousebits -= testBit;
 			//g_pViewPort->OnMouseReleased(enumMouse);
 		}
 	};
 	/**	
-	* 左键检测 0
-	* 右键检测 1
-	* 中键检测 2
-	* 4键检测  3
-	* 5键检测  4 
+	* ???? 0
+	* ???? 1
+	* ???? 2
+	* 4???  3
+	* 5???  4 
 	**/
 	for (size_t i = 0; i < 5; i++) {
 		MouseTest(mstate, 1 << i, static_cast<vgui::MouseCode>(i));
 	}
 }
 int CCustomHud::HUD_AddEntity(int type, cl_entity_s* ent, const char* modelname){
-	bool result = true;
-	result = result && m_HudEccoBuyMenu.AddEntity(type, ent, modelname);
 	GetBaseViewPort()->AddEntity(type, ent, modelname);
-	return result;
+	return 1;
 }
 void CCustomHud::HUD_TxferPredictionData(struct entity_state_s* ps, const struct entity_state_s* pps, struct clientdata_s* pcd, const struct clientdata_s* ppcd, struct weapon_data_s* wd, const struct weapon_data_s* pwd) {
 	gWR.SyncWeapon(pwd);
@@ -890,7 +858,6 @@ void CCustomHud::OnMousePressed(int code) {
 	switch (code) {
 		case vgui::MouseCode::MOUSE_LEFT: {
 			GetBaseViewPort()->GetWeaponChoosePanel()->SelectWeapon();
-			m_HudEccoBuyMenu.SelectMenu();
 			break;
 		}
 	}
