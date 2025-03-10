@@ -20,11 +20,11 @@ public:
 	virtual bool IsVisible() override;
 	virtual vgui::VPANEL GetVPanel() override;
 	virtual void SetParent(vgui::VPANEL parent) override;
-	virtual void OnThink() override;
 
 	void AddDmg(int iDmg);
 
 private:
+	void UpdateAnimations();
 	//void ShowKillMark(wchar_t* killer);
 	void StartFade(vgui::Panel* panel, bool state, float fadetime, float = 0);
 	void PlaySoundByFmod(const char* name, float volume);

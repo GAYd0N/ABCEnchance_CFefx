@@ -154,9 +154,10 @@ void CCfefxPanel::AddDmg(int iDmg)
 	if (iDmg > 0)
 		m_iDmg += iDmg;
 	ShowPanel(true);
+	UpdateAnimations();
 }
 
-void CCfefxPanel::OnThink()
+void CCfefxPanel::UpdateAnimations()
 {
 	if (!gClientData)
 	{
