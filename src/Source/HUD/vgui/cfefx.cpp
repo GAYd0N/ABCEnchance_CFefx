@@ -190,7 +190,6 @@ void CCfefxPanel::UpdateAnimations()
 	{
 		m_iDmgMultiples = 0;
 		m_iDmg = 0;
-		ResetScoreEffect();
 		for (size_t i = 0; i < m_aryDmgMarks.size(); i++)
 			ResetDmgMark(i);
 

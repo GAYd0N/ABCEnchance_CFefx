@@ -23,7 +23,7 @@
 		"visible"			"1"
 		"tabPosition"		"0"
 		"scaleImage"		"1"
-		"image"				"abcenchance/tga/cfefx/BossDamage"
+		"image"				"abcenchance/tga/cfefx/NanoDamege1"
 		"drawColor"			"255 255 255 255"
 		"zpos" 				"998"
 	}
