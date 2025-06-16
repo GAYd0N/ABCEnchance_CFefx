@@ -3,6 +3,7 @@
 
 #include <vgui/IScheme2.h>
 #include "soundengine.h"
+#include <player_info.h>
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
 
@@ -20,13 +21,10 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	SetKeyBoardInputEnabled(false);
 	SetMouseInputEnabled(false);
 
-	gCVars.pCfefxEnable = CREATE_CVAR("cl_cfefx", "1", FCVAR_VALUE, nullptr);
-	pCfefxMaxDmg = CREATE_CVAR("cl_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<int>(cvar->value, 10, 10000000); });
-	pCfefxSoundVolume = CREATE_CVAR("cl_cfefx_volume", "20", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 100); });
-	//gCVars.pCfefxKillTime = CREATE_CVAR("cl_cfefx_time", "1", FCVAR_VALUE, nullptr);
-
-	m_iDmg = 0;
-	m_iDmgMultiples = 0;
+	gCVars.pCfefxEnable = CREATE_CVAR("hud_cfefx", "1", FCVAR_VALUE, nullptr);
+	pCfefxMaxDmg = CREATE_CVAR("hud_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::max<float>(cvar->value, 10); });
+	pCfefxSoundVolume = CREATE_CVAR("hud_cfefx_volume", "20", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 10); });
+	pCfefxKillTime = CREATE_CVAR("hud_cfefx_time", "8", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::max<float>(cvar->value, 0); });
 
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
 	m_pScoreEffect = new vgui::ImagePanel(this, "ScoreEffect");
@@ -110,26 +108,25 @@ void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
 	m_pChannel.SetVolume(volume);
 }
 
-void CCfefxPanel::UpdateDmgMark(uint index) {
-	uint p = index;
-	if (p > m_aryDmgMarks.size() || !m_aryDmgMarks[p])
+void CCfefxPanel::UpdateDmgMark(size_t index) {
+	if (index > m_aryDmgMarks.size() || !m_aryDmgMarks[index])
 		return;
 
-	auto panel = m_aryDmgMarks[p];
+	auto panel = m_aryDmgMarks[index];
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
 
 	if (panel->GetAlpha() != 0)
 		return;
 
-	auto star = m_aryDmgStars[p];
+	auto star = m_aryDmgStars[index];
 	if (!star->IsVisible())
 		star->SetVisible(true);
 
-	ResetDmgMark(p);
+	ResetDmgMark(index);
 
-	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryStarAnims[p]);
-	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryMarkAnims[p]);
+	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryStarAnims[index]);
+	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryMarkAnims[index]);
 }
 
 void CCfefxPanel::UpdateScoreEffect() {
@@ -146,6 +143,9 @@ void CCfefxPanel::UpdateScoreEffect() {
 
 	if (!m_pScoreMark->IsVisible())
 		m_pScoreMark->SetVisible(true);
+
+	m_iScore = std::clamp<size_t>(m_iScore, 0, 9);
+	m_pScoreMark->SetImage(m_szScoreMarkImages[m_iScore]);
 	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, "ScoreMarkAnim");
 }
 
@@ -172,12 +172,12 @@ void CCfefxPanel::UpdateAnimations()
 		return;
 	}
 	//伤害小于阈值不触发
-	int i = static_cast<int>(pCfefxMaxDmg->value) / 10;
+	size_t i = static_cast<size_t>(pCfefxMaxDmg->value) / 10;
 	if (m_iDmg < i)
 		return;
-
+	
 	//倍数
-	uint multiples = m_iDmg / i;
+	size_t multiples = m_iDmg / i;
 
 	//防止同一倍数重复触发
 	if (multiples == m_iDmgMultiples || multiples == 0)
@@ -190,19 +190,29 @@ void CCfefxPanel::UpdateAnimations()
 	{
 		m_iDmgMultiples = 0;
 		m_iDmg = 0;
-
-		for (uint i = 0; i < m_aryDmgMarks.size(); i++)
+		ResetScoreEffect();
+		for (size_t i = 0; i < m_aryDmgMarks.size(); i++)
 			ResetDmgMark(i);
+
+		float CurrentTime = gEngfuncs.GetClientTime();
+		bool TimeToReset = CurrentTime - m_flLastTime > pCfefxKillTime->value && m_iScore != 0;
+
+		if (TimeToReset) {
+			m_iScore = 0;
+		}
 
 		PlaySoundByFmod(m_szKillSound, pCfefxSoundVolume->value);
 		UpdateScoreEffect();
 
+		m_flLastTime = CurrentTime;
+		m_iScore++;
+
 		return;
 	}
 
-	uint x = 0;
-	uint y = 0;
-	uint z = 0;
+	size_t x = 0;
+	size_t y = 0;
+	size_t z = 0;
 
 	if (multiples < 5)
 	{
@@ -217,33 +227,39 @@ void CCfefxPanel::UpdateAnimations()
 		z = 4;
 	}
 
-	for (uint i = x; i < y; i++)
+	for (size_t i = x; i < y; i++)
 		ResetDmgMark(i);
 	
-	for (uint i = z; i < multiples; i++)
+	for (size_t i = z; i < multiples; i++)
 		UpdateDmgMark(i);
 }
 
 void CCfefxPanel::Reset() 
 {
-	for (uint i = 0; i < m_aryDmgMarks.size(); i++)
+	for (size_t i = 0; i < m_aryDmgMarks.size(); i++)
 		ResetDmgMark(i);
 
 	ResetScoreEffect();
+	m_pScoreMark->SetImage(m_szScoreMarkImages[0]);
 
+	m_flLastTime = 0;
+	m_iScore = 0;
 	m_iDmgMultiples = 0;
 	m_iDmg = 0;
 }
 
-void CCfefxPanel::ResetDmgMark(int index)
+void CCfefxPanel::ResetDmgMark(size_t index)
 {
+	if (index < 0 || index >= m_aryDmgMarks.size() || !m_aryDmgMarks[index])
+		return;
+
 	// 停止动画并还原状态
 	//vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_aryDmgMarks[index]);
-	vgui::GetAnimationController()->StopAnimationSequence(this, m_aryMarkAnims[index]);
+	vgui::GetAnimationControllerEx()->StopAnimationSequence(this, m_aryMarkAnims[index]);
 	m_aryDmgMarks[index]->SetAlpha(0);
 
 	//vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_aryDmgStars[index]);
-	vgui::GetAnimationController()->StopAnimationSequence(this, m_aryStarAnims[index]);
+	vgui::GetAnimationControllerEx()->StopAnimationSequence(this, m_aryStarAnims[index]);
 	m_aryDmgStars[index]->SetAlpha(0);
 	m_aryDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
 	m_aryDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
@@ -251,6 +267,9 @@ void CCfefxPanel::ResetDmgMark(int index)
 
 void CCfefxPanel::ResetScoreEffect()
 {
+	if (!m_pScoreEffect || !m_pScoreMark)
+		return;
+
 	if (m_pScoreEffect->GetAlpha() != 0 || 
 		m_pScoreEffect->GetXPos() != m_vecScoreEffectPos.x ||
 		m_pScoreMark->GetAlpha() != 0 ||

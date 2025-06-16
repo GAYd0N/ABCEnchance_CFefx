@@ -28,17 +28,19 @@ private:
 	//void ShowKillMark(wchar_t* killer);
 	void StartFade(vgui::Panel* panel, bool state, float fadetime, float = 0);
 	void PlaySoundByFmod(const char* name, float volume);
-	void UpdateDmgMark(uint index);
+	void UpdateDmgMark(size_t index);
 	void UpdateScoreEffect();
-	void ResetDmgMark(int index);
+	void ResetDmgMark(size_t index);
 	void ResetScoreEffect();
 
-	//cvar_t*	pCfefxKillTime;
+	cvar_t*	pCfefxKillTime = nullptr;
 	cvar_t* pCfefxMaxDmg = nullptr;
 	cvar_t* pCfefxSoundVolume = nullptr;
 
-	uint m_iDmgMultiples;
-	int m_iDmg;
+	size_t m_iDmgMultiples = 0;
+	size_t m_iScore = 0;
+	size_t m_iDmg = 0;
+	float m_flLastTime = 0;
 
 	Vector m_vecScoreEffectPos;
 	Vector m_vecScoreEffectSize;
@@ -61,8 +63,19 @@ private:
 	// "abcenchance/tga/cfefx/badge_multi5",
 	// "abcenchance/tga/cfefx/badge_multi6"
 	// };
-
 	const char* m_szKillSound = { "abcenchance/sound/UI_SPECIALKILL2.wav" };
+	std::array<const char*, 10> m_szScoreMarkImages = { 
+		"abcenchance/tga/cfefx/NanoDamege1",
+		"abcenchance/tga/cfefx/NanoDamege2",
+		"abcenchance/tga/cfefx/NanoDamege3",
+		"abcenchance/tga/cfefx/NanoDamege4",
+		"abcenchance/tga/cfefx/NanoDamege5",
+		"abcenchance/tga/cfefx/NanoDamege6",
+		"abcenchance/tga/cfefx/NanoDamege7",
+		"abcenchance/tga/cfefx/NanoDamege8",
+		"abcenchance/tga/cfefx/NanoDamege9",
+		"abcenchance/tga/cfefx/NanoDamege10"
+	};
 	std::array<const char*, 9> m_aryStarAnims = {
 		"StarOneAnim",
 		"StarTwoAnim",
