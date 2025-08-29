@@ -69,17 +69,10 @@ void DrawSPRIconRect(int SprHandle, int mode, float x, float y, float w, float h
 	glVertex2f(x + w, y);
 	glEnd();
 	glDepthMask(1);
-	//vgui::Vertex_t dots[4] = {
-	//	vgui::Vertex_t(Vector2D(x, y), Vector2D(left, top)),
-	//	vgui::Vertex_t(Vector2D(x, y + h), Vector2D(left, bottom)),
-	//	vgui::Vertex_t(Vector2D(x + w,y + h), Vector2D(right, bottom)),
-	//	vgui::Vertex_t(Vector2D(x + w,y), Vector2D(right, top)),
-	//};
-	//if(mode == kRenderTransAdd)
-	//	glBlendFunc(GL_ONE, GL_ONE);
-	//vgui::surface()->DrawSetTexture(memsprite->gl_texturenum);
-	//vgui::surface()->DrawSetColor(r, g, b, a);
-	//vgui::surface()->DrawTexturedPolygon(4, dots);
+	if (mode == kRenderTransAdd) {
+		glDisable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 }
 void DrawSPRIconPos(int SprHandle, int mode, float p1[2], float p2[2], float p3[2], float p4[2], 
 	unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
@@ -108,17 +101,10 @@ void DrawSPRIconPos(int SprHandle, int mode, float p1[2], float p2[2], float p3[
 	glVertex2f(p4[0], p4[1]);
 	glEnd();
 	glDepthMask(1);
-	//vgui::Vertex_t dots[4] = {
-	//	vgui::Vertex_t(Vector2D(p1), Vector2D(0,0)),
-	//	vgui::Vertex_t(Vector2D(p2), Vector2D(0,1)),
-	//	vgui::Vertex_t(Vector2D(p3), Vector2D(1,1)),
-	//	vgui::Vertex_t(Vector2D(p4), Vector2D(1,0)),
-	//};
-	//if (mode == kRenderTransAdd)
-	//	glBlendFunc(GL_ONE, GL_ONE);
-	//vgui::surface()->DrawSetTexture(memsprite->gl_texturenum);
-	//vgui::surface()->DrawSetColor(r, g, b, a);
-	//vgui::surface()->DrawTexturedPolygon(4, dots);
+	if (mode == kRenderTransAdd) {
+		glDisable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 }
 int GetHudFontHeight(vgui::HFont m_hFont) {
 	if (!m_hFont)
