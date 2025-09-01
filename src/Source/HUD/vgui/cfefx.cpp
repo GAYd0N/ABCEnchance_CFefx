@@ -23,7 +23,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 
 	gCVars.pCfefxEnable = CREATE_CVAR("hud_cfefx", "1", FCVAR_VALUE, nullptr);
 	pCfefxMaxDmg = CREATE_CVAR("hud_cfefx_max", "1000", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::max<float>(cvar->value, 10); });
-	pCfefxSoundVolume = CREATE_CVAR("hud_cfefx_volume", "20", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 10); });
+	pCfefxSoundVolume = CREATE_CVAR("hud_cfefx_volume", "0.25", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::clamp<float>(cvar->value, 0, 10); });
 	pCfefxKillTime = CREATE_CVAR("hud_cfefx_time", "8", FCVAR_VALUE, [](cvar_t* cvar) {cvar->value = std::max<float>(cvar->value, 0); });
 
 	m_pScoreMark = new vgui::ImagePanel(this, "ScoreMark");
