@@ -13,14 +13,14 @@
 #include <vgui_controls/ImagePanel.h>
 #include <vgui_controls/spr_image.h>
 
-#include "hud.h"
+#include "core/resource/playerresource.h"
+
 #include "local.h"
 #include "vguilocal.h"
 
 #include "mymathlib.h"
 #include "Viewport.h"
 #include "playertrace.h"
-#include "weapon.h"
 
 #include "crosshair.h"
 #include <exportfuncs.h>
@@ -80,14 +80,23 @@ CCrosshairPanel::CCrosshairPanel()
 	m_pSprImage->SetColor(Color(255, 255, 255, 255));
 }
 void CCrosshairPanel::PaintBackground() {
-	if (GetBaseViewPort()->IsInSpectate())
+
+	//Fix crash when localplayer can be null on main menu
+	if (!gEngfuncs.GetLocalPlayer())
 		return;
+
+	if (gPlayerRes.IsInSpectate(gEngfuncs.GetLocalPlayer()->index))
+		return;
+
 	if (GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS))
 		return;
+
 	if (!GetBaseViewPort()->HasSuit())
 		return;
+
 	if (gClientData->health <= 0)
 		return;
+
 	//默认准心
 	if (pCvarDefaultCrosshair->value > 0)
 		DrawDefaultCrosshair(m_iCenterX, m_iCenterY);
@@ -95,7 +104,7 @@ void CCrosshairPanel::PaintBackground() {
 void CCrosshairPanel::OnThink() {
 	if (!gClientData)
 		return;
-	if (GetBaseViewPort()->IsInSpectate()) {
+	if (gPlayerRes.IsInSpectate(gEngfuncs.GetLocalPlayer()->index)){
 		HideDynamicCrossHair();
 		return;
 	}
@@ -256,7 +265,7 @@ void CCrosshairPanel::SetCrosshairSPR(int x, int y, int hPic, wrect_t* hRc) {
 	m_pSprImage->SetSize(w, h);
 	m_pSprImage->SetRect(hRc->left, hRc->right, hRc->top, hRc->bottom);
 }
-void CCrosshairPanel::SetWeapon(WEAPON* weapon) {
+void CCrosshairPanel::SetWeapon(Weapon* weapon) {
 	m_pHandledWeapon = weapon;
 	if (!m_pHandledWeapon || m_pHandledWeapon->iId <= 0) {
 		ShowPanel(false);

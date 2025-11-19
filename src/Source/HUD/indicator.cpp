@@ -4,8 +4,6 @@
 #include "mymathlib.h"
 #include "glew.h"
 
-#include "hud.h"
-#include "weapon.h"
 #include "vguilocal.h"
 #include "gl_def.h"
 #include "gl_draw.h"
@@ -13,7 +11,11 @@
 #include "gl_shader.h"
 #include "local.h"
 
+#include "core/resource/playerresource.h"
+#include "core/events/networkmessage.h"
+
 #include "CCustomHud.h"
+#include "Viewport.h"
 #include "vgui_controls/Controls.h"
 
 #include "indicator.h"
@@ -23,11 +25,43 @@ CHudIndicator m_HudIndicator;
 
 void CHudIndicator::GLInit() {
 	glGenFramebuffersEXT(1, &m_hFilterFBO);
+#if 0 //need refactor
 	m_hFilterTex = GL_GenTextureRGBA8(ScreenWidth(), ScreenHeight());
+#endif
 }
+
 void CHudIndicator::Init(void){
 	Reset();
+	g_EventDamage.append([&](int armor, int damage, int tiles, float vecFrom[3]) {
+		if (damage <= 0 && armor <= 0)
+			return;
+		float flTime = gEngfuncs.GetClientTime();
+		for (indicatorinfo_t& var : aryIndicators) {
+			if (var.flKeepTime < flTime)
+				continue;
+			if (CMathlib::VectorCompare(var.vecFrom, vecFrom)) {
+				var.flKeepTime = flTime + PainColorTime;
+				return;
+			}
+		}
+		if (gCVars.pDamageScreenFilter->value > 0) {
+			m_hScreenFilter.iDamage = damage;
+			m_hScreenFilter.iArmor = armor;
+			CMathlib::VectorCopy(vecFrom, m_hScreenFilter.vecFrom);
+			m_hScreenFilter.flKeepTime = gEngfuncs.GetClientTime() + ShockIndicatorTime;
+		}
+		indicatorinfo_t* pTarget = &aryIndicators[iNowSelectIndicator];
+		pTarget->iDamage = damage;
+		pTarget->iArmor = armor;
+		CMathlib::VectorCopy(vecFrom, pTarget->vecFrom);
+		pTarget->flKeepTime = gEngfuncs.GetClientTime() + PainIndicatorTime;
+		iNowSelectIndicator++;
+		if (iNowSelectIndicator >= NUM_MAX_INDICATOR)
+			iNowSelectIndicator = 0;
+		flPainColorKeepTime = gEngfuncs.GetClientTime() + PainColorTime;
+	});
 }
+
 int CHudIndicator::VidInit(void){
 	PainColorTime = atof(pSchemeData->GetResourceString("HealthArmor.PainColorTime"));
 	PainIndicatorTime = atof(pSchemeData->GetResourceString("HealthArmor.PainIndicatorTime"));
@@ -62,37 +96,11 @@ void CHudIndicator::CalcuPainFade(int& r, int& g, int& b, Color* c,float timeDif
 	CMathlib::HSVToRGB(thsv[0], thsv[1], thsv[2], r, g, b);
 }
 int CHudIndicator::Draw(float flTime) {
-	if (gCustomHud.IsInSpectate())
+	if (gPlayerRes.IsInSpectate(gEngfuncs.GetLocalPlayer()->index))
 		return 1;
-	if (gCustomHud.IsHudHide(HUD_HIDEALL))
+	if (GetBaseViewPort()->IsHudHide(HUD_HIDEALL))
 		return 1;
 	return DrawPain(flTime);
-}
-void CHudIndicator::AddIdicator(int dmg, int armor, vec3_t vecFrom) {
-	float flTime = gEngfuncs.GetClientTime();
-	for (indicatorinfo_t& var : m_HudIndicator.aryIndicators) {
-		if (var.flKeepTime < flTime)
-			continue;
-		if (CMathlib::VectorCompare(var.vecFrom, vecFrom)) {
-			var.flKeepTime = flTime + m_HudIndicator.PainColorTime;
-			return;
-		}
-	}
-	if (gCVars.pDamageScreenFilter->value > 0) {
-		m_hScreenFilter.iDamage = dmg;
-		m_hScreenFilter.iArmor = armor;
-		CMathlib::VectorCopy(vecFrom, m_hScreenFilter.vecFrom);
-		m_hScreenFilter.flKeepTime = gEngfuncs.GetClientTime() + ShockIndicatorTime;
-	}
-	indicatorinfo_t* pTarget = &aryIndicators[iNowSelectIndicator];
-	pTarget->iDamage = dmg;
-	pTarget->iArmor = armor;
-	CMathlib::VectorCopy(vecFrom, pTarget->vecFrom);
-	pTarget->flKeepTime = gEngfuncs.GetClientTime() + PainIndicatorTime;
-	iNowSelectIndicator++;
-	if (iNowSelectIndicator >= NUM_MAX_INDICATOR)
-		iNowSelectIndicator = 0;
-	flPainColorKeepTime = gEngfuncs.GetClientTime() + PainColorTime;
 }
 void CHudIndicator::CalcDamageDirection(indicatorinfo_s &var){
 	vec3_t vecFinal;
@@ -143,26 +151,35 @@ int CHudIndicator::DrawPain(float flTime){
 		fa *= 0.7;
 		int wDiffer = SizedScreenW - ScreenWidth();
 		int hDiffer = SizedScreenH - ScreenHeight();
+#if 0
+		//Copy current RT to m_hFilterTex
 		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &m_hOldBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_hFilterFBO);
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_hFilterTex, 0);
 		GL_BlitFrameBufferToFrameBufferColorOnly(m_hOldBuffer, m_hFilterFBO, ScreenWidth(), ScreenHeight(), ScreenWidth(), ScreenHeight());
-
 		glBindFramebuffer(GL_FRAMEBUFFER, m_hOldBuffer);
+
+		//TODO: need refactoring
+
 		glEnable(GL_TEXTURE_2D);
-		glBind(m_hFilterTex);
+		GL_Bind(m_hFilterTex);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4ub(255, 255, 255, 255);
 		GL_UseProgram(pp_colorlize.program);
-		GL_Uniform2f(pp_colorlize.ha, 0, fa);
-			DrawQuadPos(-wDiffer, -hDiffer, SizedScreenW, SizedScreenH);
-		GL_Uniform2f(pp_colorlize.ha, 0.3, fa);
-			DrawQuadPos(0, -hDiffer, SizedScreenW, SizedScreenH);
-		GL_Uniform2f(pp_colorlize.ha, 0.6, fa);
-			DrawQuadPos(-wDiffer, 0, SizedScreenW, SizedScreenH);
+
+		glUniform2f(pp_colorlize.ha, 0, fa);
+		DrawQuadPos(-wDiffer, -hDiffer, SizedScreenW, SizedScreenH);
+
+		glUniform2f(pp_colorlize.ha, 0.3, fa);
+		DrawQuadPos(0, -hDiffer, SizedScreenW, SizedScreenH);
+
+		glUniform2f(pp_colorlize.ha, 0.6, fa);
+		DrawQuadPos(-wDiffer, 0, SizedScreenW, SizedScreenH);
+
 		GL_UseProgram(0);
 		glDisable(GL_BLEND);
+#endif
 	}
 	for (indicatorinfo_t var : aryIndicators) {
 		if (var.flKeepTime <= flTime)

@@ -8,7 +8,6 @@
 #include <string>
 #include "vguilocal.h"
 #include "steam_api.h"
-#include "player_info.h"
 
 #include "vgui_controls/Panel.h"
 #include "vgui_controls/MessageMap.h"
@@ -17,6 +16,8 @@
 #include "tga_image.h"
 #include "client_steam_context.h"
 #include "avatar_image.h"
+
+#include "core/resource/playerresource.h"
 
 #include "plugins.h"
 
@@ -301,8 +302,10 @@ void CAvatarImagePanel::SetPlayer(int entindex, EAvatarSize avatarSize)
 {
 	if (!entindex)
 		m_pImage->ClearAvatarSteamID();
-
-	uint64 steamID64 = CPlayerInfo::GetPlayerInfo(entindex)->Update()->GetSteamID64();
+	auto info = gPlayerRes.GetPlayerInfo(entindex);
+	if (!info->IsValid())
+		return;
+	uint64 steamID64 = info->Update()->m_pSteamId.ConvertToUint64();
 
 	if (steamID64 && SteamUtils())
 	{

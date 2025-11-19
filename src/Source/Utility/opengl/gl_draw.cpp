@@ -8,15 +8,20 @@
 #include "gl_utility.h"
 #include "gl_shader.h"
 #include "gl_def.h"
-#include "hud.h"
+#include "gl_common.h"
 #include "local.h"
 #include "exportfuncs.h"
 #include "vgui_controls/Controls.h"
 
 #include "gl_draw.h"
+#include <IMetaRenderer.h>
 
-void glBind(GLint tex){
-	gHookFuncs.GL_Bind(tex);
+void GL_Bind(GLint gltexturenum)
+{
+	if (MetaRenderer())
+	{
+		MetaRenderer()->Bind(gltexturenum);
+	}
 }
 
 using mspriteframe_t = struct mspriteframe_s
@@ -27,8 +32,8 @@ using mspriteframe_t = struct mspriteframe_s
 	int		gl_texturenum;
 };
 
-void DrawSPRIcon(int SprHandle, int mode, float x, float y, float w, float h, 
-	unsigned char r, unsigned char g, unsigned char b, unsigned char a, int frame) {
+void DrawSPRIcon(int SprHandle, int mode, float x, float y, float w, float h, unsigned char r, unsigned char g, unsigned char b, unsigned char a, int frame) 
+{
 	SPR_Set(SprHandle, r, g, b);
 	extern /* (msprite_s**) */ void* gpSprite;
 	void* spr = *(void**)gpSprite;
@@ -42,22 +47,26 @@ void DrawSPRIcon(int SprHandle, int mode, float x, float y, float w, float h,
 	else
 		vgui::surface()->DrawTexturedRect(x, y, x + w, x + h);
 }
-void DrawSPRIconRect(int SprHandle, int mode, float x, float y, float w, float h, float left, float right, float top, float bottom, 
-	unsigned char r, unsigned char g, unsigned char b, unsigned char a, int frame) {
+
+extern /* (msprite_s**) */ void* gpSprite;
+
+void DrawSPRIconRect(int SprHandle, int mode, float x, float y, float w, float h, float left, float right, float top, float bottom, unsigned char r, unsigned char g, unsigned char b, unsigned char a, int frame)
+{
 	SPR_Set(SprHandle, r, g, b);
-	extern /* (msprite_s**) */ void* gpSprite;
 	void* spr = *(void**)gpSprite;
 	mspriteframe_t* memsprite = static_cast<mspriteframe_t*>(gHookFuncs.R_GetSpriteFrame(spr, frame));
 	if (!memsprite)
 		return;
+
+	uint64_t programState = DRAW_TEXTURED_RECT_ALPHA_BLEND_ENABLED;
 	if (mode == kRenderTransAdd) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
+		programState = DRAW_TEXTURED_RECT_ADDITIVE_BLEND_ENABLED;
 	}
-	glDepthMask(0);
-	glBind(memsprite->gl_texturenum);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 0x46040000); //0x46040000 ?
-	glColor4f(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+
+	float color4v[4]{ r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
+	
+	/*
+	It was:
 	glBegin(GL_QUADS);
 	glTexCoord2f(left, top);
 	glVertex2f(x, y);
@@ -68,42 +77,92 @@ void DrawSPRIconRect(int SprHandle, int mode, float x, float y, float w, float h
 	glTexCoord2f(right, top);
 	glVertex2f(x + w, y);
 	glEnd();
-	glDepthMask(1);
-	if (mode == kRenderTransAdd) {
-		glDisable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	*/
+	if (MetaRenderer())
+	{
+		// 使用 DrawTexturedRect 并正确设置纹理坐标
+		texturedrectvertex_t vertices[4];
+
+		// 左上角 (left, top)
+		vertices[0].pos[0] = x;
+		vertices[0].pos[1] = y;
+		vertices[0].texcoord[0] = left;
+		vertices[0].texcoord[1] = top;
+		vertices[0].col[0] = color4v[0]; vertices[0].col[1] = color4v[1];
+		vertices[0].col[2] = color4v[2]; vertices[0].col[3] = color4v[3];
+
+		// 左下角 (left, bottom)
+		vertices[1].pos[0] = x;
+		vertices[1].pos[1] = y + h;
+		vertices[1].texcoord[0] = left;
+		vertices[1].texcoord[1] = bottom;
+		vertices[1].col[0] = color4v[0]; vertices[1].col[1] = color4v[1];
+		vertices[1].col[2] = color4v[2]; vertices[1].col[3] = color4v[3];
+
+		// 右下角 (right, bottom)
+		vertices[2].pos[0] = x + w;
+		vertices[2].pos[1] = y + h;
+		vertices[2].texcoord[0] = right;
+		vertices[2].texcoord[1] = bottom;
+		vertices[2].col[0] = color4v[0]; vertices[2].col[1] = color4v[1];
+		vertices[2].col[2] = color4v[2]; vertices[2].col[3] = color4v[3];
+
+		// 右上角 (right, top)
+		vertices[3].pos[0] = x + w;
+		vertices[3].pos[1] = y;
+		vertices[3].texcoord[0] = right;
+		vertices[3].texcoord[1] = top;
+		vertices[3].col[0] = color4v[0]; vertices[3].col[1] = color4v[1];
+		vertices[3].col[2] = color4v[2]; vertices[3].col[3] = color4v[3];
+
+		// 索引: 两个三角形 (0,1,2) 和 (0,2,3)
+		uint32_t indices[6] = { 0, 1, 2, 0, 2, 3 };
+
+		MetaRenderer()->DrawTexturedRect(memsprite->gl_texturenum, vertices, 4, indices, 6, programState, "ABC::DrawSPRIconRect");
 	}
 }
-void DrawSPRIconPos(int SprHandle, int mode, float p1[2], float p2[2], float p3[2], float p4[2], 
-	unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+
+void DrawSPRIconPos(int SprHandle, int mode, float p1[2], float p2[2], float p3[2], float p4[2], unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+{
 	SPR_Set(SprHandle, r, g, b);
-	extern /* (msprite_s**) */ void* gpSprite;
 	void* spr = *(void**)gpSprite;
 	mspriteframe_t* memsprite = static_cast<mspriteframe_t*>(gHookFuncs.R_GetSpriteFrame(spr, 0));
 	if (!memsprite)
 		return;
-	if (mode == kRenderTransAdd) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-	}
-	glDepthMask(0);
-	glBind(memsprite->gl_texturenum);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 0x46040000); //0x46040000 ?
-	glColor4f(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex2f(p1[0], p1[1]);
-	glTexCoord2f(0, 1);
-	glVertex2f(p2[0], p2[1]);
-	glTexCoord2f(1, 1);
-	glVertex2f(p3[0], p3[1]);
-	glTexCoord2f(1, 0);
-	glVertex2f(p4[0], p4[1]);
-	glEnd();
-	glDepthMask(1);
-	if (mode == kRenderTransAdd) {
-		glDisable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (MetaRenderer())
+	{
+		uint64_t programState = DRAW_TEXTURED_RECT_ALPHA_BLEND_ENABLED;
+		if (mode == kRenderTransAdd) {
+			programState = DRAW_TEXTURED_RECT_ADDITIVE_BLEND_ENABLED;
+		}
+
+		float color4v[4]{ r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
+
+		texturedrectvertex_t vertices[4];
+		vertices[0].pos[0] = p1[0]; vertices[0].pos[1] = p1[1];
+		vertices[0].texcoord[0] = 0.0f; vertices[0].texcoord[1] = 0.0f;
+		vertices[0].col[0] = color4v[0]; vertices[0].col[1] = color4v[1];
+		vertices[0].col[2] = color4v[2]; vertices[0].col[3] = color4v[3];
+
+		vertices[1].pos[0] = p2[0]; vertices[1].pos[1] = p2[1];
+		vertices[1].texcoord[0] = 0.0f; vertices[1].texcoord[1] = 1.0f;
+		vertices[1].col[0] = color4v[0]; vertices[1].col[1] = color4v[1];
+		vertices[1].col[2] = color4v[2]; vertices[1].col[3] = color4v[3];
+
+		vertices[2].pos[0] = p3[0]; vertices[2].pos[1] = p3[1];
+		vertices[2].texcoord[0] = 1.0f; vertices[2].texcoord[1] = 1.0f;
+		vertices[2].col[0] = color4v[0]; vertices[2].col[1] = color4v[1];
+		vertices[2].col[2] = color4v[2]; vertices[2].col[3] = color4v[3];
+
+		vertices[3].pos[0] = p4[0]; vertices[3].pos[1] = p4[1];
+		vertices[3].texcoord[0] = 1.0f; vertices[3].texcoord[1] = 0.0f;
+		vertices[3].col[0] = color4v[0]; vertices[3].col[1] = color4v[1];
+		vertices[3].col[2] = color4v[2]; vertices[3].col[3] = color4v[3];
+
+		uint32_t indices[6] = { 0, 1, 2, 0, 2, 3 };
+
+		MetaRenderer()->DrawTexturedRect(memsprite->gl_texturenum, vertices, 4, indices, 6, programState, "ABC::DrawSPRIconPos");
 	}
 }
 int GetHudFontHeight(vgui::HFont m_hFont) {
@@ -224,43 +283,4 @@ void ScaleColors(int& r, int& g, int& b, int a) {
 	r = (int)(r * x);
 	g = (int)(g * x);
 	b = (int)(b * x);
-}
-void DrawQuadPos(int x, int y, int w, int h) {
-	glBegin(GL_QUADS);
-	glTexCoord2i(0, 0);
-	glVertex3i(x, y + h, -1);
-	glTexCoord2i(0, 1);
-	glVertex3i(x, y, -1);
-	glTexCoord2i(1, 1);
-	glVertex3i(x + w, y, -1);
-	glTexCoord2i(1, 0);
-	glVertex3i(x + w, y + h, -1);
-	glEnd();
-}
-void DrawQuad(int w, int h) {
-	DrawQuadPos(0, 0, w, h);
-}
-void DrawScreenQuad() {
-	DrawQuad(ScreenWidth(), ScreenHeight());
-}
-void DrawKawaseBlur(GLint tex, size_t blurness, float offsetw, float offseth, int w,int h) {
-	static auto rendershader = [](pp_kawaseblur_program_t shader, GLint tex, float offsetw, float offseth, int w, int h) {
-		glBind(tex);
-		GL_UseProgram(shader.program);
-		GL_Uniform2f(shader.offset, offsetw, offseth);
-		GL_Uniform2f(shader.iResolution, w, h);
-		GL_Uniform2f(shader.halfpixel, 0.5f / (float)w, 0.5f / (float)h);
-		glColor4ub(255, 255, 255, 255);
-		DrawQuad(w, h);
-		GL_UseProgram(0);
-	};
-	glEnable(GL_TEXTURE_2D);
-	glPushAttrib(GL_VIEWPORT_BIT);
-	glViewport(0, 0, w, h);
-	for (size_t i = 0; i < blurness; i++) {
-		rendershader(pp_kawaseblur_down, tex, offsetw, offseth, w, h);
-		rendershader(pp_kawaseblur_up, tex, offsetw, offseth, w, h);
-	}
-	glPopAttrib();
-	glDisable(GL_TEXTURE_2D);
 }

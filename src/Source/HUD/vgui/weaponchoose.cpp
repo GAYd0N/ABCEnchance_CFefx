@@ -6,22 +6,21 @@
 #include <map>
 #include <string>
 #include "cvardef.h"
-#include "weaponinfo.h"
-#include "weapon.h"
-#include "weaponbank.h"
 
-#include "hud.h"
 #include "CCustomHud.h"
 
 #include "vgui_controls/spr_image.h"
 #include "vgui_controls/ImageSprPanel.h"
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
+#include "core/resource/playerresource.h"
+
+#include "Viewport.h"
 #include "weaponchoose.h"
 
 extern const clientdata_t* gClientData;
 static int g_iRainbowColorCounter = 0;
-CWeaponChooseItem::CWeaponChooseItem(vgui::Panel* parent, WEAPON* wep) : BaseClass(parent, "WeaponItem") {
+CWeaponChooseItem::CWeaponChooseItem(vgui::Panel* parent, Weapon* wep) : BaseClass(parent, "WeaponItem") {
 	m_pWeapon = wep;
 	m_pWeaponPanel = new vgui::ImageSprPanel(this, "Weapon");
 	m_pWeaponInactivePanel = new vgui::ImageSprPanel(this, "WeaponInactive");
@@ -126,7 +125,7 @@ void CWeaponChooseItem::SetActivate(bool state) {
 	m_pWeaponPanel->SetVisible(state);
 	m_pWeaponInactivePanel->SetVisible(!state);
 }
-WEAPON* CWeaponChooseItem::GetWeapon() {
+Weapon* CWeaponChooseItem::GetWeapon() {
 	return m_pWeapon;
 }
 
@@ -214,7 +213,7 @@ void CWeaponChoosePanel::SetParent(vgui::VPANEL parent) {
 }
 void CWeaponChoosePanel::PerformLayout(){
 	BaseClass::PerformLayout();
-	WEAPON* select = gWR.m_pNowSelected;
+	auto select = gWR.m_pNowSelected;
 	int sslot = gWR.m_iNowSlot;
 	int x = 0;
 	g_iRainbowColorCounter = 0;
@@ -262,9 +261,10 @@ void CWeaponChoosePanel::ReloadWeaponSpr(){
 	}
 }
 bool CWeaponChoosePanel::ShouldDraw(){
-	if (gCustomHud.IsInSpectate())
+	
+	if (gPlayerRes.IsInSpectate(gEngfuncs.GetLocalPlayer()->index))
 		return false;
-	if (gCustomHud.IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS))
+	if (GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS))
 		return false;
 	if (!gCustomHud.HasSuit())
 		return false;
@@ -287,7 +287,7 @@ void CWeaponChoosePanel::SelectWeapon(){
 		m_bSelectBlock = true;
 	}
 }
-void CWeaponChoosePanel::ChooseWeapon(WEAPON* weapon){
+void CWeaponChoosePanel::ChooseWeapon(Weapon* weapon){
 	ShowPanel(true);
 
 	//如果选到空槽位，关闭上次的选择框和高亮spr
@@ -316,7 +316,7 @@ void CWeaponChoosePanel::ChooseWeapon(WEAPON* weapon){
 		}
 	}
 }
-void CWeaponChoosePanel::InsertWeapon(WEAPON* weapon){
+void CWeaponChoosePanel::InsertWeapon(Weapon* weapon){
 	size_t slot = weapon->iSlot;
 	size_t pos = weapon->iSlotPos;
 	if (slot < 0 || slot > 9)
@@ -334,7 +334,7 @@ void CWeaponChoosePanel::InsertWeapon(WEAPON* weapon){
 	}
 	list.push_back(new CWeaponChooseItem(this, weapon));
 }
-void CWeaponChoosePanel::RemoveWeapon(WEAPON* weapon){
+void CWeaponChoosePanel::RemoveWeapon(Weapon* weapon){
 	int slot = weapon->iSlot;
 	if (slot < 0 || slot > 9)
 		return;

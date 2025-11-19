@@ -3,9 +3,23 @@
 #include <vector>
 #include "vgui_controls/Panel.h"
 
+#include "core/resource/weaponresource.h"
+
 #ifndef VGUI_IVIEWPORTPANEL_H
 class IViewportPanel;
 #endif
+
+const enum {
+	HUD_HIDEWEAPONS = (1 << 0),
+	HUD_HIDEFLASHLIGHT = (1 << 1),
+	HUD_HIDEALL = (1 << 2),
+	HUD_HIDEHEALTH = (1 << 3),
+	HUD_HIDESELECTION = (1 << 4),
+	HUD_HIDEBATTERY = (1 << 5),
+	HUD_HIDECUSTOM1 = (1 << 6),
+	HUD_HIDECUSTOM2 = (1 << 7)
+};
+constexpr auto WEAPON_SUIT = 31;
 
 class CPlayerInfoPanel;
 class CMotdPanel;
@@ -31,10 +45,6 @@ class CWeaponStackPanel;
 class CWeaponChoosePanel;
 class CItemHighLightPanel;
 
-#ifndef __AMMO_H__
-class WEAPON;
-#endif
-
 namespace vgui {
 	class CScorePanel;
 	class CVotePanel;
@@ -49,12 +59,10 @@ public:
 public:
 	//ClientVGUI Interface
 	void Start(void);
-	void Init(void);
 	void VidInit(void);
 	void Reset();
 	void Think(void);
 	const char* GetNextMap();
-	void SetNextMap(const char* name);
 	void Paint(void);
 	void SetParent(vgui::VPANEL vPanel);
 	void AddNewPanel(IViewportPanel* panel);
@@ -65,15 +73,13 @@ public:
 	void AddEntity(int type, struct cl_entity_s* ent, const char* modelname);
 
 	void SetInterMission(int intermission);
-	int GetInterMission();
 
 	bool LoacalPlayerAvilable();
 
-	bool IsInSpectate();
 	bool HasSuit();
+	bool SelectTextMenuItem(int slot);
 	void WeaponBitsChangeCallback(int bits);
 	bool IsHudHide(int HideToken);
-	void HudHideCallBack(int token);
 	void LongjumpCallBack(bool state);
 
 	HScheme GetBaseScheme();
@@ -83,63 +89,43 @@ public:
 	void HideScoreBoard();
 	long GetTimeEnd();
 	const char* GetServerName();
-	void SetServerName(const char*name);
-	CScorePanel* GetScoreBoard();
 	CVotePanel* GetVotePanel();
 	CMotdPanel* GetMotdPanel();
-	CAmmoPanel* GetAmmoPanel();
 	Color GetPlayerColor(int index);
 	bool IsPlayerTileEnable();
 
 	bool IsVoteEnable();
-	void StartVote(char* szContent, char* szYes, char* szNo, int iVoteType);
-	void EndVote();
 
 	void AddPopNumber(vec3_t vecOrigin, Color& pColor, int value);
 
-	void AppendMOTD(char* szMessage);
 	void ShowMOTD();
-	void CloseMOTD();
-	void FinishSendMOTD();
 	
 	void ShowSideText(bool state);
 
-	bool MsgShowMenu(const char* pszName, int iSize, void* pbuf);
 	void ShowTextMenu(bool state);
 	void SelectMenuItem(int slot);
 	bool IsTextMenuOpen();
 
-	void SetFlashLight(bool on, int battery);
-	void SetFlashBattery(int battery);
-
 	void ShowCrossHair(bool on);
 
-	void SetHealth(int health);
-	void SetArmor(int armor);
 	void UpdateTiles(long tiles);
 
 	void SetSpectate(bool state);
 
-	bool TextMsg(const char* pszName, int iSize, void* pbuf);
 	void ShowDeathMsg(bool state);
 
 	void AddDmg(int iDmg);
 
 	void ShowMusic(bool state);
+
+	bool IsInScore();
 #ifdef __HAS_NETEASE_API
 	CNeteasePanel* GetMusicPanel();
 private:
 	CNeteasePanel* m_pNeteaseMusic = nullptr;
 public:
 #endif // __HAS_NETEASE_API
-
-	CAmmoStackPanel* GetAmmoStackPanel();
-	CItemStackPanel* GetItemStackPanel();
-	CWeaponStackPanel* GetWeaponStackPanel();
-
 	CWeaponChoosePanel* GetWeaponChoosePanel();
-
-	void SetCurWeapon(WEAPON* weapon);
 
 	enum class HUDNOTICE {
 		PRINTNOTIFY = 1,
@@ -185,6 +171,8 @@ private:
 
 	vgui::HScheme m_hBaseScheme = 0;
 	int m_iInterMission = 0;
+	int m_bitsHideHUDDisplay = 0;
+	bool m_bInScore;
 
 	char m_szServerName[MAX_SERVERNAME_LENGTH] = "<ERROR>";
 	char m_szNextMapName[MAX_SERVERNAME_LENGTH] = "<ERROR>";

@@ -421,19 +421,19 @@ private:
 	float			m_shadelight = 192;					// direct world light
 
 	model_t* LoadModel(const char* modelname) {
-		return IEngineStudio.Mod_ForName(modelname, false);
+		return gEngineStudio.Mod_ForName(modelname, false);
 	}
 
 	studiohdr_t* GetStudioHdr(model_t* mdl) {
-		return reinterpret_cast<studiohdr_t*>(IEngineStudio.Mod_Extradata(mdl));
+		return reinterpret_cast<studiohdr_t*>(gEngineStudio.Mod_Extradata(mdl));
 	}
 
 	model_t* LoadDemandSequences(char* modelname) {
-		return IEngineStudio.Mod_ForName(modelname, false);
+		return gEngineStudio.Mod_ForName(modelname, false);
 	}
 
 	studioseqhdr_t* GetSequenceHdr(model_t* mdl) {
-		return reinterpret_cast<studioseqhdr_t*>(IEngineStudio.Mod_Extradata(mdl));
+		return reinterpret_cast<studioseqhdr_t*>(gEngineStudio.Mod_Extradata(mdl));
 	}
 
 
@@ -753,6 +753,9 @@ private:
 		}
 	}
 	void DrawPoints(void) {
+
+#if 0//Not supproted in Core Profile
+
 		if (!m_pstudiomdl)
 			return;
 		int					i, j;
@@ -820,7 +823,7 @@ private:
 
 			s = 1.0 / (float)ptexture[pskinref[pmesh->skinref]].width;
 			t = 1.0 / (float)ptexture[pskinref[pmesh->skinref]].height;
-			glBindTexture(GL_TEXTURE_2D, ptexture[pskinref[pmesh->skinref]].index);
+			GL_Bind(ptexture[pskinref[pmesh->skinref]].index);
 
 			if (ptexture[pskinref[pmesh->skinref]].flags & STUDIO_NF_CHROME)
 			{
@@ -881,6 +884,7 @@ private:
 				}
 			}
 		}
+#endif
 	}
 	void Lighting(float* lv, int bone, int flags, vec3_t normal) {
 		float 	illum;
@@ -1031,7 +1035,7 @@ vgui::ModelViewPanel::~ModelViewPanel(){
 void vgui::ModelViewPanel::SetupTexBuffer(){
 	if (!m_hBufferFBO && !m_hBufferTex) {
 		glGenFramebuffers(1, &m_hBufferFBO);
-
+#if 0//need refactor
 		int w, h;
 		GetSize(w, h);
 		m_hBufferTex = GL_GenTextureRGBA8(w, h);
@@ -1046,8 +1050,10 @@ void vgui::ModelViewPanel::SetupTexBuffer(){
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_hBufferTex, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_hBufferRBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_oldFrameBuffer);
+
 		m_iFboWidth = w;
 		m_iFboHeight = h;
+#endif
 	}
 }
 
@@ -1217,6 +1223,9 @@ void vgui::ModelViewPanel::SetLightOrigin(float x, float y, float z){
 // Purpose: draws the graph
 //-----------------------------------------------------------------------------
 void ModelViewPanel::Paint(){
+
+#if 0//Not supported in Core Profile
+
 	GLfloat oldProjection[16], oldModelView[16];
 	glGetFloatv(GL_PROJECTION_MATRIX, oldProjection);
 	glGetFloatv(GL_MODELVIEW_MATRIX, oldModelView);
@@ -1234,9 +1243,9 @@ void ModelViewPanel::Paint(){
 	float flNear = 4.0f;
 	float flFar = 1024.0f;
 	float flAspect = (float)m_iFboWidth / (float)m_iFboHeight;
-	float f = 1.0f / tanf(m_flFov * 0.5f * M_PI / 180.0f); // ÊÓ³¡½ÇµÄÓàÇÐÖµ
-	float a = (flFar + flNear) / (flNear - flFar); // ½üÔ¶Æ½ÃæµÄ±ÈÖµ
-	float b = (2.0f * flFar * flNear) / (flNear - flFar); // ½üÔ¶Æ½ÃæµÄ³Ë»ý
+	float f = 1.0f / tanf(m_flFov * 0.5f * M_PI / 180.0f); // ï¿½Ó³ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+	float a = (flFar + flNear) / (flNear - flFar); // ï¿½ï¿½Ô¶Æ½ï¿½ï¿½Ä±ï¿½Öµ
+	float b = (2.0f * flFar * flNear) / (flNear - flFar); // ï¿½ï¿½Ô¶Æ½ï¿½ï¿½Ä³Ë»ï¿½
 	vec_t matrix[16] = {
 		f / flAspect, 0, 0, 0,
 		0, f, 0, 0,
@@ -1269,7 +1278,7 @@ void ModelViewPanel::Paint(){
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(oldModelView);
 
-	glBind(m_hBufferTex);
+	GL_Bind(m_hBufferTex);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	Color fgcolor = GetFgColor();
@@ -1287,6 +1296,8 @@ void ModelViewPanel::Paint(){
 	glVertex2f(0, 0);
 	glEnd();
 	glDisable(GL_BLEND);
+
+#endif
 }
 
 void vgui::ModelViewPanel::ApplySettings(KeyValues* inResourceData){

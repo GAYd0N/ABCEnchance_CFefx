@@ -10,7 +10,7 @@
 #include <IClientVGUI.h>
 #include "vguilocal.h"
 #include "steam_api.h"
-#include "player_info.h"
+
 #include "scoreboard.h"
 #include "Viewport.h"
 #include "exportfuncs.h"
@@ -48,6 +48,7 @@ public:
 		extern vgui::CViewport* g_pViewPort;
 		g_pViewPort = new vgui::CViewport();
 		g_pViewPort->Start();
+		g_pViewPort->SetVisible(false);
 	}
 	virtual void SetParent(vgui::VPANEL parent) override {
 		GetBaseViewPort()->SetParent(parent);

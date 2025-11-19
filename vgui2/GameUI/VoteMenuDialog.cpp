@@ -8,7 +8,8 @@
 #include "vgui_controls/avatar_image.h"
 #include "vgui_controls/ImageList.h"
 
-#include "player_info.h"
+#include "core/resource/playerresource.h"
+#include "core/events/networkmessage.h"
 
 #include "VoteMenuDialog.h"
 
@@ -171,49 +172,49 @@ void vgui::CVoteBanPage::ResetList()
 	m_pList->RemoveAll();
 	m_pList->ResetScrollBar();
 	
-	auto& infos = CPlayerInfo::GetPlayerInfos();
 	char buf[MAX_PATH];
 	m_pFilter->GetText(buf, MAX_PATH);
-	for (auto iter = infos.begin(); iter != infos.end(); iter++) {
-		auto p = *iter;
-		if (!p.IsValid())
+
+	for(auto i = 1; i <= SC_MAX_PLAYERS; i++){
+		auto p = gPlayerRes.GetPlayerInfo(i);
+		if (!p->IsValid())
 			continue;
 
 		//update or create player avatar
-		if (s_aryAvatars->IsValidIndex(p.GetIndex())) {
-			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p.GetIndex()));
-			img->SetAvatarSteamID(*p.GetSteamID());
+		if (s_aryAvatars->IsValidIndex(p->m_iIndex)) {
+			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p->m_iIndex));
+			img->SetAvatarSteamID(p->m_pSteamId);
 		}
 		else {
 			CAvatarImage* img = new CAvatarImage();
-			img->SetAvatarSteamID(*p.GetSteamID());
-			s_aryAvatars->SetImageAtIndex(p.GetIndex(), img);
+			img->SetAvatarSteamID(p->m_pSteamId);
+			s_aryAvatars->SetImageAtIndex(p->m_iIndex, img);
 		}
 		m_pList->SetImageList(s_aryAvatars, false);
 
 		if (std::strlen(buf) > 0) {
 			std::string flt = buf;
 			std::transform(flt.begin(), flt.end(), flt.begin(), ::tolower);
-			std::string game_name = p.GetName();
+			std::string game_name = p->GetName();
 			std::transform(game_name.begin(), game_name.end(), game_name.begin(), ::tolower);
 			if ((flt.size() == 0) || (game_name.find(flt) != std::string::npos)) {
 				
-				KeyValues kv(p.GetSteamIDString64());
-				kv.SetInt("avatar", p.GetIndex());
-				kv.SetInt("index", p.GetIndex());
-				kv.SetString("name", p.GetName());
-				kv.SetString("real_name", p.GetRealName());
-				kv.SetString("steamid", p.GetSteamIDString64());
+				KeyValues kv(p->m_szSteamID64);
+				kv.SetInt("avatar", p->m_iIndex);
+				kv.SetInt("index", p->m_iIndex);
+				kv.SetString("name", p->GetName());
+				kv.SetString("real_name", p->m_szRealName.c_str());
+				kv.SetString("steamid", p->m_szSteamID64);
 				m_pList->AddItem(&kv, 0, false, false);
 			}
 		}
 		else {
-			KeyValues kv(p.GetSteamIDString64());
-			kv.SetInt("avatar", p.GetIndex());
-			kv.SetInt("index", p.GetIndex());
-			kv.SetString("name", p.GetName());
-			kv.SetString("real_name", p.GetRealName());
-			kv.SetString("steamid", p.GetSteamIDString64());
+			KeyValues kv(p->m_szSteamID64);
+			kv.SetInt("avatar", p->m_iIndex);
+			kv.SetInt("index", p->m_iIndex);
+			kv.SetString("name", p->GetName());
+			kv.SetString("real_name", p->m_szRealName.c_str());
+			kv.SetString("steamid", p->m_szSteamID64);
 			m_pList->AddItem(&kv, 0, false, false);
 		}
 	}
@@ -246,47 +247,46 @@ void vgui::CVoteKickPage::ResetList()
 	m_pList->RemoveAll();
 	m_pList->ResetScrollBar();
 
-	auto& infos = CPlayerInfo::GetPlayerInfos();
 	char buf[MAX_PATH];
 	m_pFilter->GetText(buf, MAX_PATH);
-	for (auto iter = infos.begin(); iter != infos.end(); iter++) {
-		auto p = *iter;
-		if (!p.IsValid())
+	for (auto i = 1; i <= SC_MAX_PLAYERS; i++) {
+		auto p = gPlayerRes.GetPlayerInfo(i);
+		if (!p->IsValid())
 			continue;
 		//update or create player avatar
-		if (s_aryAvatars->IsValidIndex(p.GetIndex())) {
-			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p.GetIndex()));
+		if (s_aryAvatars->IsValidIndex(p->m_iIndex)) {
+			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p->m_iIndex));
 			if (img)
-				img->SetAvatarSteamID(*p.GetSteamID());
+				img->SetAvatarSteamID(p->m_pSteamId);
 		}
 		else {
 			CAvatarImage* img = new CAvatarImage();
-			img->SetAvatarSteamID(*p.GetSteamID());
-			s_aryAvatars->SetImageAtIndex(p.GetIndex(), img);
+			img->SetAvatarSteamID(p->m_pSteamId);
+			s_aryAvatars->SetImageAtIndex(p->m_iIndex, img);
 		}
 		m_pList->SetImageList(s_aryAvatars, false);
 		if (std::strlen(buf) > 0) {
 			std::string flt = buf;
 			std::transform(flt.begin(), flt.end(), flt.begin(), ::tolower);
-			std::string game_name = p.GetName();
+			std::string game_name = p->GetName();
 			std::transform(game_name.begin(), game_name.end(), game_name.begin(), ::tolower);
 			if ((flt.size() == 0) || (game_name.find(flt) != std::string::npos)) {
-				KeyValues kv(p.GetSteamIDString64());
-				kv.SetInt("avatar", p.GetIndex());
-				kv.SetInt("index", p.GetIndex());
-				kv.SetString("name", p.GetName());
-				kv.SetString("real_name", p.GetRealName());
-				kv.SetString("steamid", p.GetSteamIDString64());
+				KeyValues kv(p->m_szSteamID64);
+				kv.SetInt("avatar", p->m_iIndex);
+				kv.SetInt("index", p->m_iIndex);
+				kv.SetString("name", p->GetName());
+				kv.SetString("real_name", p->m_szRealName.c_str());
+				kv.SetString("steamid", p->m_szSteamID64);
 				m_pList->AddItem(&kv, 0, false, false);
 			}
 		}
 		else {
-			KeyValues kv(p.GetSteamIDString64());
-			kv.SetInt("avatar", p.GetIndex());
-			kv.SetInt("index", p.GetIndex());
-			kv.SetString("name", p.GetName());
-			kv.SetString("real_name", p.GetRealName());
-			kv.SetString("steamid", p.GetSteamIDString64());
+			KeyValues kv(p->m_szSteamID64);
+			kv.SetInt("avatar", p->m_iIndex);
+			kv.SetInt("index", p->m_iIndex);
+			kv.SetString("name", p->GetName());
+			kv.SetString("real_name", p->m_szRealName.c_str());
+			kv.SetString("steamid", p->m_szSteamID64);
 			m_pList->AddItem(&kv, 0, false, false);
 		}
 	}
@@ -319,46 +319,45 @@ void vgui::CVoteKillPage::ResetList()
 	m_pList->RemoveAll();
 	m_pList->ResetScrollBar();
 
-	auto& infos = CPlayerInfo::GetPlayerInfos();
 	char buf[MAX_PATH];
 	m_pFilter->GetText(buf, MAX_PATH);
-	for (auto iter = infos.begin(); iter != infos.end(); iter++) {
-		auto p = *iter;
-		if (!p.IsValid())
+	for (auto i = 1; i <= SC_MAX_PLAYERS; i++) {
+		auto p = gPlayerRes.GetPlayerInfo(i);
+		if (!p->IsValid())
 			continue;
 		//update or create player avatar
-		if (s_aryAvatars->IsValidIndex(p.GetIndex())) {
-			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p.GetIndex()));
-			img->SetAvatarSteamID(*p.GetSteamID());
+		if (s_aryAvatars->IsValidIndex(p->m_iIndex)) {
+			CAvatarImage* img = reinterpret_cast<CAvatarImage*>(s_aryAvatars->GetImage(p->m_iIndex));
+			img->SetAvatarSteamID(p->m_pSteamId);
 		}
 		else {
 			CAvatarImage* img = new CAvatarImage();
-			img->SetAvatarSteamID(*p.GetSteamID());
-			s_aryAvatars->SetImageAtIndex(p.GetIndex(), img);
+			img->SetAvatarSteamID(p->m_pSteamId);
+			s_aryAvatars->SetImageAtIndex(p->m_iIndex, img);
 		}
 		m_pList->SetImageList(s_aryAvatars, false);
 		if (std::strlen(buf) > 0) {
 			std::string flt = buf;
 			std::transform(flt.begin(), flt.end(), flt.begin(), ::tolower);
-			std::string game_name = p.GetName();
+			std::string game_name = p->GetName();
 			std::transform(game_name.begin(), game_name.end(), game_name.begin(), ::tolower);
 			if ((flt.size() == 0) || (game_name.find(flt) != std::string::npos)) {
-				KeyValues kv(p.GetSteamIDString64());
-				kv.SetInt("avatar", p.GetIndex());
-				kv.SetInt("index", p.GetIndex());
-				kv.SetString("name", p.GetName());
-				kv.SetString("real_name", p.GetRealName());
-				kv.SetString("steamid", p.GetSteamIDString64());
+				KeyValues kv(p->m_szSteamID64);
+				kv.SetInt("avatar", p->m_iIndex);
+				kv.SetInt("index", p->m_iIndex);
+				kv.SetString("name", p->GetName());
+				kv.SetString("real_name", p->m_szRealName.c_str());
+				kv.SetString("steamid", p->m_szSteamID64);
 				m_pList->AddItem(&kv, 0, false, false);
 			}
 		}
 		else {
-			KeyValues kv(p.GetSteamIDString64());
-			kv.SetInt("avatar", p.GetIndex());
-			kv.SetInt("index", p.GetIndex());
-			kv.SetString("name", p.GetName());
-			kv.SetString("real_name", p.GetRealName());
-			kv.SetString("steamid", p.GetSteamIDString64());
+			KeyValues kv(p->m_szSteamID64);
+			kv.SetInt("avatar", p->m_iIndex);
+			kv.SetInt("index", p->m_iIndex);
+			kv.SetString("name", p->GetName());
+			kv.SetString("real_name", p->m_szRealName.c_str());
+			kv.SetString("steamid", p->m_szSteamID64);
 			m_pList->AddItem(&kv, 0, false, false);
 		}
 	}
@@ -370,6 +369,16 @@ vgui::CVoteMapPage::CVoteMapPage(Panel* parent) : BaseClass(parent, "VoteMapPage
 {
 	LoadControlSettings("abcenchance/res/gameui/VoteMapPage.res");
 	m_pList->AddColumnHeader(0, "name", "#GameUI_ABC_VotePageName", 0, ListPanel::ColumnFlags_e::COLUMN_RESIZEWITHWINDOW);
+	g_EventMapList.append([&](int clearall, int start, int end, const char** maps) {
+		if (clearall == 0)
+			m_aryMaps.clear();
+		else {
+			for (int i = 0; i < end - start; i++) {
+				const char* map = maps[i];
+				m_aryMaps.push_back(map);
+			}
+		}
+	});
 }
 
 void vgui::CVoteMapPage::SendYesCommand(const char* value)
@@ -389,23 +398,19 @@ void vgui::CVoteMapPage::ResetList()
 	char buf[MAX_PATH];
 	m_pFilter->GetText(buf, MAX_PATH);
 
-	extern std::vector<std::string>& GetGameMapList();
-	auto& maplist = GetGameMapList();
-	for (auto iter = maplist.begin(); iter != maplist.end(); iter++) {
-		std::string& m = *iter;
-
+	for (auto& m : m_aryMaps) {
 		if (std::strlen(buf) > 0) {
 			std::string flt = buf;
 			std::transform(flt.begin(), flt.end(), flt.begin(), ::tolower);
 			std::string map_lower = m;
 			std::transform(map_lower.begin(), map_lower.end(), map_lower.begin(), ::tolower);
 			if ((flt.size() == 0) || (map_lower.find(flt) != std::string::npos)) {
-				KeyValues kv(m.c_str(), "name", m.c_str());
+				KeyValues kv(m, "name", m);
 				m_pList->AddItem(&kv, 0, false, false);
 			}
 		}
 		else {
-			KeyValues kv(m.c_str(), "name", m.c_str());
+			KeyValues kv(m, "name", m);
 			m_pList->AddItem(&kv, 0, false, false);
 		}
 	}

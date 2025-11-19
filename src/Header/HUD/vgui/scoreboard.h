@@ -7,6 +7,7 @@
 #include <tier1/utlmap.h>
 #include <vgui_controls/Frame.h>
 #include "IViewportPanel.h"
+#include "core/resource/playerresource.h"
 
 namespace vgui
 {
@@ -78,7 +79,7 @@ public:
 
 
 private:
-	static constexpr int HEADER_SECTION_ID = 0;
+	static constexpr TEAM_ID HEADER_SECTION_ID = TEAM_ID::NONE;
 	static constexpr float HIGHLIGHT_KILLER_TIME = 10.f;
 	static constexpr float UPDATE_PERIOD = 0.5f;
 
@@ -102,16 +103,18 @@ private:
 
 	struct TeamData
 	{
+		TEAM_ID nID;
 		int iFrags = 0;
 		int iDeaths = 0;
 		int iPlayerCount = 0;
+		bool bCreated = 0;
 	};
 
 	struct PlayerData
 	{
 		bool bIsConnected = false;
 		int nItemID = -1;
-		int nTeamID = 0;
+		TEAM_ID nTeamID = TEAM_ID::NONE;
 	};
 
 	struct MenuData
@@ -136,10 +139,9 @@ private:
 	ImageList* m_pImageList = nullptr;
 	Menu* m_pPlayerMenu = nullptr;
 
-	std::array<TeamData, SC_MAX_TEAMS + 2> m_TeamData;
-	std::array<bool, SC_MAX_TEAMS + 2> m_IsTeamSectionCreated;
-	std::array<PlayerData, SC_MAX_PLAYERS + 1> m_PlayerData;
-	std::array<int, SC_MAX_TEAMS + 1> m_SortedTeamIDs;
+	std::array<TeamData, PREDEFINED_TEAM_COUNT> m_TeamData{};
+	std::array<PlayerData, SC_MAX_PLAYERS + 1> m_PlayerData{};
+	std::array<TEAM_ID, PREDEFINED_TEAM_COUNT> m_SortedTeamIDs{};
 	MenuData m_MenuData;
 
 	int m_iKillerIndex = 0;
@@ -203,7 +205,7 @@ private:
 	/**
 	 * Creates a section for specified team.
 	 */
-	void CreateSection(int nTeamID);
+	void CreateSection(TEAM_ID nTeamID);
 
 	/**
 	 * Adds/removes/updates rows of all clients.
@@ -211,8 +213,8 @@ private:
 	 * Resizes the panel.
 	 */
 	void UpdateAllClients();
-	void UpdatePlayerAdmin(CPlayerInfo* pi);
-	void UpdatePlayerDonor(CPlayerInfo* pi);
+	void UpdatePlayerAdmin(PlayerInfo* pi);
+	void UpdatePlayerDonor(PlayerInfo* pi);
 	/**
 	 * Updates client's row in the scoreboard.
 	 */
@@ -221,7 +223,7 @@ private:
 	/**
 	 * Updates m_pImageList[i]: changes muted state and updates Steam avatar.
 	 */
-	void UpdateClientIcon(CPlayerInfo* pi);
+	void UpdateClientIcon(PlayerInfo* pi);
 
 	/**
 	 * Updates team scores and player counts.
@@ -234,14 +236,9 @@ private:
 	int GetNameColumnWidth();
 
 	/**
-	 * Returns player team [0; MAX_TEAMS] or TEAM_SPECTATOR.
-	 */
-	int GetPlayerTeam(CPlayerInfo* pi);
-
-	/**
 	 * Returns bright color if this is this player, fading red if it's the last killer or (0,0,0,0).
 	 */
-	Color GetPlayerBgColor(CPlayerInfo* pi);
+	Color GetPlayerBgColor(PlayerInfo* pi);
 
 	/**
 	 * Returns client icon size.

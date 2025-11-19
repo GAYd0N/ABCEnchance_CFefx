@@ -8,7 +8,6 @@
 
 #include "exportfuncs.h"
 
-#include "hud.h"
 #include "vguilocal.h"
 #include "playertrace.h"
 
@@ -21,160 +20,176 @@
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/avatar_image.h"
 
-#include "player_info.h"
+#include "core/resource/playerresource.h"
+
 #include <CCustomHud.h>
 #include "Viewport.h"
 #include "radar.h"
 
+#include <IMetaRenderer.h>
+
 #undef clamp
 
-class CRadarMapImage : public vgui::IImage_HL25 {
+class CRadarMapImage : public vgui::IImage_HL25
+{
 public:
-	virtual void Destroy() {
+	void Destroy() override
+	{
 		delete this;
 	}
 
-	virtual void SetAdditive(bool bIsAdditive) {
+	void SetAdditive(bool bIsAdditive) override
+	{
 
 	}
 
-	virtual void Paint() override{
-		//������Ļ��������
-		int x = m_iX;
-		int y = m_iY;
-		//shader
-		GL_UseProgram(pp_texround.program);
-		if (gCVars.pRadar->value > 1) {
-			GL_Uniform1f(pp_texround.rad, min(1.0f, m_flRoundRadius / m_iWide));
-			GL_Uniform3f(pp_texround.xys, x, y, m_iWide);
+	void Paint() override
+	{
+		if (MetaRenderer())
+		{
+			vec4_t vColor4f = { m_DrawColor.r() / 255.0f, m_DrawColor.g() / 255.0f ,m_DrawColor.b() / 255.0f ,m_DrawColor.a() / 255.0f };
+
+			MetaRenderer()->DrawTexturedQuadMask(
+				m_BaseTexture,
+				m_MaskTexture,
+				m_iX + 0,
+				m_iY + m_iTall,
+				m_iX + m_iWide,
+				m_iY + 0,
+				vColor4f,
+				DRAW_TEXTURED_RECT_ALPHA_BLEND_ENABLED | DRAW_TEXTURED_RECT_MASK_TEXTURE_ENABLED,
+				"CRadarMapImage::Paint");
 		}
-		else
-			GL_Uniform1f(pp_texround.rad, 0.0f);
-		//������������
-		float h = static_cast<float>(m_iTall) / gScreenInfo.iHeight;
-		float w = static_cast<float>(m_iWide) / gScreenInfo.iWidth;
-		float stx = (1.0f - w) / 2.0f;
-		float sty = (1.0f - h) / 2.0f;
-		glEnable(GL_TEXTURE_2D);
-		glBind(m_hBufferTex);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ub(m_DrawColor.r(), m_DrawColor.g(), m_DrawColor.b(), m_DrawColor.a());
-		glBegin(GL_QUADS);
-		glTexCoord2f(stx, sty);
-		glVertex2f(x, y + m_iTall);
-		glTexCoord2f(stx + w, sty);
-		glVertex2f(x + m_iWide, y + m_iTall);
-		glTexCoord2f(stx + w, sty + h);
-		glVertex2f(x + m_iWide, y);
-		glTexCoord2f(stx, sty + h);
-		glVertex2f(x, y);
-		glEnd();
-		glDisable(GL_BLEND);
-		GL_UseProgram(0);
 	}
-	virtual void SetPos(int x, int y) override{
+
+	void SetPos(int x, int y) override {
 		m_iX = x;
 		m_iY = y;
 	}
-	virtual void SetOffset(int x, int y){
-		m_iOffX = x;
-		m_iOffY = y;
-	}
-	virtual void GetContentSize(int& wide, int& tall) override{
+
+	void GetContentSize(int& wide, int& tall) override {
 		wide = m_iWide;
 		tall = m_iTall;
 	}
-	virtual void GetSize(int& wide, int& tall) override{
+
+	void GetSize(int& wide, int& tall) override {
 		GetContentSize(wide, tall);
 	}
-	virtual void SetSize(int wide, int tall) override{
+
+	void SetSize(int wide, int tall) override {
 		m_iWide = wide;
 		m_iTall = tall;
 	}
-	virtual void SetColor(Color col) override{
+
+	void SetColor(Color col) override {
 		m_DrawColor = col;
 	}
-	
-	void SetTex(uint tex) {
-		m_hBufferTex = tex;
+
+	void SetBaseTexture(uint tex) {
+		m_BaseTexture = tex;
 	}
-	void SetRadius(float r) {
-		m_flRoundRadius = r;
+
+	void SetMaskTexture(uint tex) {
+		m_MaskTexture = tex;
 	}
-	virtual ~CRadarMapImage() {
-		if (m_hBufferTex)
-			glDeleteTextures(1, &m_hBufferTex);
-	}
+
 private:
-	float m_flRoundRadius = 0;
-	int m_iOffX = 0, m_iOffY = 0;
 	int m_iX = 0, m_iY = 0;
 	int m_iWide = 0, m_iTall = 0;
-	uint m_hBufferTex;
+
+	uint m_BaseTexture{};
+	uint m_MaskTexture{};
+
 	Color m_DrawColor = Color(255, 255, 255, 255);
 };
 
-extern vgui::CViewport* g_pViewPort;
 constexpr auto VIEWPORT_RADAR_NAME = "RadarPanel";
+
 extern vgui::HScheme GetViewPortBaseScheme();
+
 CRadarPanel::CRadarPanel()
 	: BaseClass(nullptr, VIEWPORT_RADAR_NAME) {
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_oldFrameBuffer);
 
-	glGenFramebuffers(1, &m_hRadarBufferFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_hRadarBufferFBO);
-	auto tex = GL_GenTextureRGBA8(gScreenInfo.iWidth, gScreenInfo.iHeight);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_oldFrameBuffer);
+	if (MetaRenderer())
+	{
+		m_RadarFBO.iWidth = 1024;
+		m_RadarFBO.iHeight = 1024;
+		MetaRenderer()->GenFrameBuffer(&m_RadarFBO, "m_RadarFBO");
+		MetaRenderer()->FrameBufferColorTexture(&m_RadarFBO, GL_RGBA8);
+		MetaRenderer()->FrameBufferDepthTexture(&m_RadarFBO, GL_DEPTH24_STENCIL8);
+	}
 
 	SetProportional(true);
 	SetKeyBoardInputEnabled(false);
 	SetMouseInputEnabled(false);
 	SetScheme(GetViewPortBaseScheme());
 
-	ADD_COMMAND("+scale_radar", [](){g_pViewPort->GetRadarPanel()->SetScale(true); });
-	ADD_COMMAND("-scale_radar", []() {g_pViewPort->GetRadarPanel()->SetScale(false); });
+	ADD_COMMAND("+scale_radar", []() {GetBaseViewPort()->GetRadarPanel()->SetScale(true); });
+	ADD_COMMAND("-scale_radar", []() {GetBaseViewPort()->GetRadarPanel()->SetScale(false); });
 
 	gCVars.pRadar = CREATE_CVAR("hud_radar", "1", FCVAR_VALUE, [](cvar_t* cvar) {
-		g_pViewPort->GetRadarPanel()->ShowPanel(cvar->value);
-	});
+		GetBaseViewPort()->GetRadarPanel()->ShowPanel(cvar->value);
+		});
+
 	gCVars.pRadarZMin = CREATE_CVAR("hud_radar_zmin", "256", FCVAR_VALUE, nullptr);
 	gCVars.pRadarZMax = CREATE_CVAR("hud_radar_zmax", "20", FCVAR_VALUE, nullptr);
 	gCVars.pRadarZoom = CREATE_CVAR("hud_radar_zoom", "2.5", FCVAR_VALUE, nullptr);
 
 	gCVars.pRadarAvatar = CREATE_CVAR("hud_radar_avatar", "1", FCVAR_VALUE, [](cvar_t* cvar) {
-		g_pViewPort->GetRadarPanel()->SetAvatarVisible(cvar->value);
-	});
+		GetBaseViewPort()->GetRadarPanel()->SetAvatarVisible(cvar->value);
+		});
 	gCVars.pRadarAvatarSize = CREATE_CVAR("hud_radar_avatarsize", "20", FCVAR_VALUE, nullptr);
 	gCVars.pRadarAvatarScale = CREATE_CVAR("hud_radar_avatarscale", "0.2", FCVAR_VALUE, nullptr);
-	
+
 	m_pBackground = new vgui::ImagePanel(this, "Background");
 	m_pRoundBackground = new vgui::ImagePanel(this, "RoundBackground");
 	m_pMapground = new vgui::ImagePanel(this, "Mapground");
 	m_pUpground = new vgui::ImagePanel(this, "Upground");
 	m_pNorthground = new vgui::ImagePanel(this, "Northground");
 	m_pViewangleground = new vgui::ImagePanel(this, "Viewangleground");
-	for (size_t i = 0; i < 32; i++){
+	for (size_t i = 0; i < 32; i++) {
 		m_aryPlayerAvatars[i] = new vgui::CAvatarImagePanel(this, "Avatar");
 		m_aryPlayerAvatars[i]->SetVisible(true);
 		m_aryPlayerAvatars[i]->SetShouldScaleImage(true);
 	}
 	LoadControlSettings(VGUI2_ROOT_DIR "RadarPanel.res");
-	auto radarimg = new CRadarMapImage();
-	radarimg->SetTex(tex);
-	int w, h;
+
+	m_iRadarRoundBackgroundTextureId = vgui::surface()->CreateNewTextureID();
+	vgui::surface()->DrawSetTextureFile(m_iRadarRoundBackgroundTextureId, "abcenchance/tga/radar_background", true, false);
+
+	m_pRadarImage = new CRadarMapImage();
+	m_pRadarImage->SetBaseTexture(m_RadarFBO.s_hBackBufferTex);
+	m_pRadarImage->SetMaskTexture(m_iRadarRoundBackgroundTextureId);
+
+	int w{}, h{};
 	m_pMapground->GetSize(w, h);
-	radarimg->SetSize(w, h);
-	radarimg->SetRadius(m_flRoundRadius);
-	m_pMapground->SetImage(radarimg);
+	m_pRadarImage->SetSize(w, h);
+
+	m_pMapground->SetImage(m_pRadarImage);
 }
 
-CRadarPanel::~CRadarPanel(){
-	if (m_hRadarBufferFBO)
-		glDeleteFramebuffers(1, &m_hRadarBufferFBO);
+CRadarPanel::~CRadarPanel() {
+
+	if (m_pRadarImage)
+	{
+		delete m_pRadarImage;
+		m_pRadarImage = nullptr;
+	}
+
+	if (m_iRadarRoundBackgroundTextureId)
+	{
+		vgui::surface()->DeleteTextureByID(m_iRadarRoundBackgroundTextureId);
+		m_iRadarRoundBackgroundTextureId = 0;
+	}
+
+	if (MetaRenderer() && m_RadarFBO.s_hBackBufferFBO)
+	{
+		MetaRenderer()->FreeFBO(&m_RadarFBO);
+	}
 }
-void CRadarPanel::PerformLayout(){
+
+void CRadarPanel::PerformLayout()
+{
 	BaseClass::PerformLayout();
 	int w, h;
 	GetSize(w, h);
@@ -186,9 +201,12 @@ void CRadarPanel::PerformLayout(){
 	m_pViewangleground->GetSize(vw, vh);
 	m_pViewangleground->SetPos((w - vw) / 2, (h - vh) / 2);
 }
-void CRadarPanel::Paint(){
-	if (!g_pViewPort->HasSuit())
+
+void CRadarPanel::Paint()
+{
+	if (!GetBaseViewPort()->HasSuit())
 		return;
+
 	auto local = gEngfuncs.GetLocalPlayer();
 	if (local) {
 		if (gCVars.pRadar->value > 0) {
@@ -203,7 +221,7 @@ void CRadarPanel::Paint(){
 		}
 
 		int size = GetWide();
-		//ָ����
+
 		int nw, nh;
 		m_pNorthground->GetSize(nw, nh);
 		int len = GetWide() - nw;
@@ -220,13 +238,13 @@ void CRadarPanel::Paint(){
 			float w = ww / 2;
 			for (size_t i = 0; i < 32; i++) {
 				auto iter = m_aryPlayerAvatars[i];
-				CPlayerInfo* pi = CPlayerInfo::GetPlayerInfo(i + 1);
+				PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i + 1);
 				if (!pi->IsValid()) {
 					iter->SetVisible(false);
 					continue;
 				}
-				CPlayerInfo* lpi = CPlayerInfo::GetThisPlayerInfo();
-				if (pi->GetTeamNumber() != lpi->GetTeamNumber()) {
+				PlayerInfo* lpi = gPlayerRes.GetLocalPlayerInfo();
+				if (pi->m_iTeamNumber != lpi->m_iTeamNumber) {
 					iter->SetVisible(false);
 					continue;
 				}
@@ -260,7 +278,9 @@ void CRadarPanel::Paint(){
 	}
 	BaseClass::Paint();
 }
-void CRadarPanel::ApplySettings(KeyValues* inResourceData){
+
+void CRadarPanel::ApplySettings(KeyValues* inResourceData)
+{
 	BaseClass::ApplySettings(inResourceData);
 	GetSize(m_iStartWidth, m_iStartTall);
 
@@ -268,108 +288,172 @@ void CRadarPanel::ApplySettings(KeyValues* inResourceData){
 	m_iScaledWidth = vgui::scheme()->GetProportionalScaledValue(inResourceData->GetInt("scaled_wide", 300));
 	m_iScaledTall = vgui::scheme()->GetProportionalScaledValue(inResourceData->GetInt("scaled_tall", 300));
 }
-void CRadarPanel::ApplySchemeSettings(vgui::IScheme* pScheme){
+
+void CRadarPanel::ApplySchemeSettings(vgui::IScheme* pScheme)
+{
 	BaseClass::ApplySchemeSettings(pScheme);
 	m_cOutline = GetSchemeColor("Radar.OutlineColor", GetSchemeColor("Panel.FgColor", pScheme), pScheme);
 	m_cMap = GetSchemeColor("Radar.MapColor", GetSchemeColor("Panel.BgColor", pScheme), pScheme);
 	SetFgColor(GetSchemeColor("Radar.FgColor", GetSchemeColor("Panel.FgColor", pScheme), pScheme));
 	SetBgColor(GetSchemeColor("Radar.BgColor", GetSchemeColor("Panel.BgColor", pScheme), pScheme));
 }
-const char* CRadarPanel::GetName(){
+
+const char* CRadarPanel::GetName()
+{
 	return VIEWPORT_RADAR_NAME;
 }
-void CRadarPanel::Reset(){
+
+void CRadarPanel::Reset()
+{
 	SetScale(false);
 	cvar_t* pCvarDevC = CVAR_GET_POINTER("dev_overview_color");
-	if (pCvarDevC && g_metaplugins.renderer.has) {
+	if (pCvarDevC && MetaRenderer()) {
 		sscanf_s(pCvarDevC->string, "%d %d %d", &iOverviewR, &iOverviewG, &iOverviewB);
 		iOverviewR /= 255;
 		iOverviewG /= 255;
 		iOverviewB /= 255;
 	}
 }
-void CRadarPanel::ShowPanel(bool state){
+
+void CRadarPanel::ShowPanel(bool state)
+{
 	if (state == IsVisible())
 		return;
+
 	SetVisible(state);
 }
-bool CRadarPanel::IsVisible() {
+
+bool CRadarPanel::IsVisible()
+{
 	return BaseClass::IsVisible();
 }
-vgui::VPANEL CRadarPanel::GetVPanel() {
+
+vgui::VPANEL CRadarPanel::GetVPanel()
+{
 	return BaseClass::GetVPanel();
 }
-void CRadarPanel::SetParent(vgui::VPANEL parent) {
+
+void CRadarPanel::SetParent(vgui::VPANEL parent)
+{
 	BaseClass::SetParent(parent);
 }
-bool g_bInRenderRadar = false;
-void CRadarPanel::RenderRadar(){
-	gCustomHud.m_flOverViewZmax = GetPlayerTrace()->Get(CPlayerTrace::TRACE_TYPE::HEAD)->endpos[2] - gCVars.pRadarZMax->value;
-	gCustomHud.m_flOverViewZmin = GetPlayerTrace()->Get(CPlayerTrace::TRACE_TYPE::FOOT)->endpos[2] - gCVars.pRadarZMin->value;
 
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_oldFrameBuffer);
-	//glBindFramebuffer(GL_FRAMEBUFFER, m_hRadarBufferFBO);
-	//���õ�����Դ��ϳ��¿�
-	gCustomHud.m_flOverViewScale = gCVars.pRadarZoom->value;
-	cl_entity_t* local = gEngfuncs.GetLocalPlayer();
-	gCustomHud.m_vecOverViewOrg[0] = local->curstate.origin[0];
-	gCustomHud.m_vecOverViewOrg[1] = local->curstate.origin[1];
-	gCustomHud.m_flOverViewYaw = local->curstate.angles[CMathlib::Q_YAW];
-	float arySaveCvars[] = {
-		gCVars.pCVarDevOverview->value,
-		gCVars.pCVarDrawEntities->value,
-		gCVars.pCVarDrawViewModel->value,
-		gCVars.pCVarDrawDynamic->value,
-		gCVars.pCVarFXAA ? gCVars.pCVarFXAA->value : 0.0f,
-		gCVars.pCVarWater ? gCVars.pCVarWater->value : 0.0f,
-		gCVars.pCVarShadow ? gCVars.pCVarShadow->value : 0.0f
-	};
-	gCVars.pCVarDevOverview->value = 2;
-	gCVars.pCVarDrawEntities->value = 0;
-	gCVars.pCVarDrawViewModel->value = 0;
-	gCVars.pCVarDrawDynamic->value = 0;
-	if (gCVars.pCVarFXAA)
-		gCVars.pCVarFXAA->value = 0;
-	if (gCVars.pCVarWater)
-		gCVars.pCVarWater->value = 0;
-	if (gCVars.pCVarShadow)
-		gCVars.pCVarShadow->value = 0;
-	static ref_params_t param = {};
-	CMathlib::VectorCopy(local->origin, param.vieworg);
-	param.viewangles[1] = 90;
-	param.viewport[2] = gScreenInfo.iWidth;
-	param.viewport[3] = gScreenInfo.iHeight;
+void CRadarPanel::RenderRadar()
+{
+	if (MetaRenderer())
+	{
+		MetaRenderer()->BeginDebugGroup("CRadarPanel::RenderRadar");
+		MetaRenderer()->BindFrameBuffer(&m_RadarFBO);
+		MetaRenderer()->SetCurrentSceneFBO(&m_RadarFBO);
 
-	extern bool* g_bRenderingPortals;
-	bool oldRender = *g_bRenderingPortals;
-	*g_bRenderingPortals = false;
-	g_bInRenderRadar = true;
+		cl_entity_t* local = gEngfuncs.GetLocalPlayer();
+		VectorCopy(local->curstate.origin, m_vecOverViewOrigin);
+		m_vecOverViewOrigin[2] += 72;
 
-	//why no work?
-	gHookFuncs.CEngineClient_RenderView(&param, true, false, 0);
+		VectorCopy(local->curstate.angles, m_vecOverViewAngles);
+		m_vecOverViewAngles[0] = 90;
+		m_vecOverViewAngles[2] = 0;
 
-	g_bInRenderRadar = false;
-	*g_bRenderingPortals = oldRender;
-	gCVars.pCVarDevOverview->value = arySaveCvars[0];
-	gCVars.pCVarDrawEntities->value = arySaveCvars[1];
-	gCVars.pCVarDrawViewModel->value = arySaveCvars[2];
-	gCVars.pCVarDrawDynamic->value = arySaveCvars[3];
-	if (gCVars.pCVarFXAA)
-		gCVars.pCVarFXAA->value = arySaveCvars[4];
-	if (gCVars.pCVarWater)
-		gCVars.pCVarWater->value = arySaveCvars[5];
-	if (gCVars.pCVarShadow)
-		gCVars.pCVarShadow->value = arySaveCvars[6];
-	//glBindFramebuffer(GL_FRAMEBUFFER, m_oldFrameBuffer);
+		float arySaveCvars[] = {
+			gCVars.pCVarDrawEntities->value,
+			gCVars.pCVarDrawViewModel->value,
+			gCVars.pCVarDrawDynamic->value,
+			gCVars.pCVarFXAA ? gCVars.pCVarFXAA->value : 0.0f,
+			gCVars.pCVarWater ? gCVars.pCVarWater->value : 0.0f,
+			gCVars.pCVarShadow ? gCVars.pCVarShadow->value : 0.0f,
+			gCVars.pCVarDeferredLighting ? gCVars.pCVarDeferredLighting->value : 0.0f,
+			gCVars.pCVarGammaBlend ? gCVars.pCVarGammaBlend->value : 0.0f,
+		};
+		gCVars.pCVarDrawEntities->value = 0;
+		gCVars.pCVarDrawViewModel->value = 0;
+		gCVars.pCVarDrawDynamic->value = 0;
+		if (gCVars.pCVarFXAA)
+			gCVars.pCVarFXAA->value = 0;
+		if (gCVars.pCVarWater)
+			gCVars.pCVarWater->value = 0;
+		if (gCVars.pCVarShadow)
+			gCVars.pCVarShadow->value = 0;
+		if (gCVars.pCVarDeferredLighting)
+			gCVars.pCVarDeferredLighting->value = 0;
+		if (gCVars.pCVarGammaBlend)
+			gCVars.pCVarGammaBlend->value = 1;
+
+		MetaRenderer()->PushRefDef();
+
+		MetaRenderer()->SetMultiviewEnabled(true);
+
+		auto oldDrawClassify = MetaRenderer()->GetDrawClassify();
+		MetaRenderer()->SetDrawClassify(DRAW_CLASSIFY_WORLD | DRAW_CLASSIFY_LIGHTMAP);
+
+		MetaRenderer()->SetRefDefViewOrigin(m_vecOverViewOrigin);
+		MetaRenderer()->SetRefDefViewAngles(m_vecOverViewAngles);
+
+		MetaRenderer()->UpdateRefDef();
+
+		MetaRenderer()->LoadIdentityForProjectionMatrix();
+		//MetaRenderer()->SetupOrthoProjectionMatrix(-1024 / 2, 1024 / 2, -1024 / 2, 1024 / 2, 2048, -2048, true);
+
+		float scale = gCVars.pRadarZoom->value;
+		MetaRenderer()->SetupOrthoProjectionMatrix(
+			-(4096.0 / scale),
+			(4096.0 / scale),
+			-(4096.0 / scale),
+			(4096.0 / scale),
+			2048, 
+			-2048,
+			true);
+
+		MetaRenderer()->LoadIdentityForWorldMatrix();
+		MetaRenderer()->SetupPlayerViewWorldMatrix(m_vecOverViewOrigin, m_vecOverViewAngles);
+
+		MetaRenderer()->SetViewport(0, 0, 1024, 1024);
+
+		camera_ubo_t CameraUBO{};
+		MetaRenderer()->SetupCameraView(&CameraUBO.views[0]);
+		CameraUBO.numViews = 1;
+
+		MetaRenderer()->UploadCameraUBOData(&CameraUBO);
+
+		vec4_t vClearColor = { 0, 0, 0, 1 };
+		MetaRenderer()->ClearColorDepthStencil(vClearColor, 1, 0, STENCIL_MASK_ALL);
+
+		MetaRenderer()->RenderScene();
+
+		MetaRenderer()->SetDrawClassify(oldDrawClassify);
+
+		MetaRenderer()->SetMultiviewEnabled(false);
+
+		MetaRenderer()->PopRefDef();
+
+		gCVars.pCVarDrawEntities->value = arySaveCvars[0];
+		gCVars.pCVarDrawViewModel->value = arySaveCvars[1];
+		gCVars.pCVarDrawDynamic->value = arySaveCvars[2];
+		if (gCVars.pCVarFXAA)
+			gCVars.pCVarFXAA->value = arySaveCvars[3];
+		if (gCVars.pCVarWater)
+			gCVars.pCVarWater->value = arySaveCvars[4];
+		if (gCVars.pCVarShadow)
+			gCVars.pCVarShadow->value = arySaveCvars[5];
+		if (gCVars.pCVarDeferredLighting)
+			gCVars.pCVarDeferredLighting->value = arySaveCvars[6];
+		if (gCVars.pCVarGammaBlend)
+			gCVars.pCVarGammaBlend->value = arySaveCvars[7];
+
+		MetaRenderer()->EndDebugGroup();
+	}
 }
-void CRadarPanel::SetScale(bool state){
+
+void CRadarPanel::SetScale(bool state)
+{
 	if (state)
 		SetSize(m_iScaledWidth, m_iScaledTall);
 	else
 		SetSize(m_iStartWidth, m_iStartTall);
 	InvalidateLayout();
 }
-void CRadarPanel::SetAvatarVisible(bool state){
+
+void CRadarPanel::SetAvatarVisible(bool state)
+{
 	for (auto iter = m_aryPlayerAvatars.begin(); iter != m_aryPlayerAvatars.end(); iter++) {
 		(*iter)->SetVisible(state);
 	}

@@ -10,6 +10,7 @@
 #include "local.h"
 #include "config.h"
 #include "enginedef.h"
+#include "core/events/networkmessage.h"
 
 #include "autofunc.h"
 
@@ -145,6 +146,30 @@ void AutoFunc::Init(){
 		SetConcurrent(iter->first.c_str(), iter->second.c_str());
 	}
 	s_dicEventCmd = config->m_dicEventsCmd;
+
+	g_EventCurWeapon.append([](int state, int id, int, int) {
+		if (state <= 0) {
+			switch (id) {
+			case -1:
+			case 0:
+				AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_DEATH);
+				break;
+			}
+		}
+	});
+	g_EventDamage.append([](int armor, int damage, int tiles, float*){
+		AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_DAMAGE,
+		std::to_string(damage).c_str(), std::to_string(armor).c_str(), std::to_string(tiles).c_str());
+	});
+	g_EventBattery.append([](int battery) {
+		AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_BATTERY, std::to_string(battery).c_str());
+	});
+	g_EventHealth.append([](int health) {
+		AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_HEALTH, std::to_string(health).c_str());
+	});
+	g_EventFlashBat.append([](int flash) {
+		AutoFunc::TriggerEvent(AutoFunc::EVENTCMD_FLASHBATTERY, std::to_string(flash).c_str());
+	});
 }
 
 void AutoFunc::Exit(){

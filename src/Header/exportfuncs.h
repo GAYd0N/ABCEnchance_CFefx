@@ -7,16 +7,28 @@ class CGameStudioModelRenderer;
 
 extern cl_enginefunc_t gEngfuncs;
 extern cl_exportfuncs_t gExportfuncs;
-extern engine_studio_api_t IEngineStudio;
+extern engine_studio_api_t gEngineStudio;
 extern CGameStudioModelRenderer* g_StudioRenderer;
 
 extern const clientdata_t* gClientData;
 
-extern overviewInfo_t* gDevOverview;
 extern metaplugins_t g_metaplugins;
 
+
+
+using hudpanel_info_t = struct hudpanel_info_s {
+	float frags;
+	int death;
+	int classify;
+	char unknown[64];
+	float health;
+	float armor;
+	int donor;
+	int admin;
+};
+extern hudpanel_info_t* g_aryNativeHUDPanelInfo;
+
 extern void CheckAsset();
-extern void CheckOtherPlugin();
 
 //Hook
 extern void AddHook(hook_t* h);
@@ -58,7 +70,7 @@ extern void HUD_DrawTransparentTriangles();
 
 #define Fill_Sig(sig, base, size, dst) {gHookFuncs.dst = (decltype(gHookFuncs.dst))g_pMetaHookAPI->SearchPattern(base, size, sig, Sig_Length(sig));Sig_FuncNotFound(dst);}
 #define GetCallAddress(addr) (addr + (*(int *)((addr)+1)) + 5)
-#define Sig_NotFound(name) SYS_ERROR("Could not found: %s\nEngine buildnum£º%d", #name, g_dwEngineBuildnum);
+#define Sig_NotFound(name) SYS_ERROR("Could not found: %s\nEngine buildnum %d", #name, g_dwEngineBuildnum);
 #define Sig_FuncNotFound(name) if(!gHookFuncs.name) Sig_NotFound(name)
 #define Sig_AddrNotFound(name) if(!addr) Sig_NotFound(name)
 #define Sig_AddrFoundOrFill(name) Sig_AddrNotFound(name) else name = (decltype(name))addr;
