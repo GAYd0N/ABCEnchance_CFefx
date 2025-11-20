@@ -3,13 +3,11 @@
 
 #include <vgui/IScheme2.h>
 #include "soundengine.h"
-#include <player_info.h>
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
 
 #include "local.h"
 #include "vguilocal.h"
-#include "hud.h"
 #include "Viewport.h"
 #include "cfefx.h"
 
@@ -81,7 +79,6 @@ void CCfefxPanel::ApplySchemeSettings(vgui::IScheme* pScheme) {
 
 void CCfefxPanel::ApplySettings(KeyValues* inResourceData) {
 	BaseClass::ApplySettings(inResourceData);
-
 }
 //true淡入显示，false淡出隐藏
 inline void CCfefxPanel::StartFade(vgui::Panel* panel, bool state, float fadetime, float delaytime) {
@@ -153,24 +150,23 @@ void CCfefxPanel::AddDmg(int iDmg)
 {
 	if (iDmg > 0)
 		m_iDmg += iDmg;
-	ShowPanel(true);
 	UpdateAnimations();
 }
 
 void CCfefxPanel::UpdateAnimations()
 {
-	if (!gClientData)
+	if (!GetBaseViewPort()->LoacalPlayerAvilable())
 	{
 		ShowPanel(false);
 		return;
 	}
-	if (GetBaseViewPort()->IsInSpectate() ||
-		GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS) ||
+	if (GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS) ||
 		gClientData->health <= 0)
 	{
 		Reset();
 		return;
 	}
+	ShowPanel(true);
 	//伤害小于阈值不触发
 	size_t i = static_cast<size_t>(pCfefxMaxDmg->value) / 10;
 	if (m_iDmg < i)
