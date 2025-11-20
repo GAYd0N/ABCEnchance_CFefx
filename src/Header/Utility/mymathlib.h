@@ -50,16 +50,6 @@ public:
 		Q_YAW,		// left / right
 		Q_ROLL		// fall over
 	};
-
-	template<typename T>
-	static T clamp(T val, T minVal, T maxVal){
-		if (val < minVal)
-			return minVal;
-		else if (val > maxVal)
-			return maxVal;
-		else
-			return val;
-	}
 	static float METER2INCH(float x);
 	static float INCH2METER(float x);
 	static void VectorSubtract(vec3_t a, vec3_t b, vec3_t c);
@@ -73,7 +63,6 @@ public:
 	static float DotProduct(vec3_t x, vec3_t y);
 	static float DotProduct(const vec3_t x, const vec3_t y);
 	static void ColorCalcuAlpha(int& r, int& g, int& b, int a);
-	static void Vector2RotateCASA(vec2_t out, float x, float y, float ca, float sa);
 	template<typename T>
 	static T max3(T a, T b, T c) {
 		return (((a) > ((((b) > (c)) ? (b) : (c)))) ? (a) : ((((b) > (c)) ? (b) : (c))));
@@ -82,8 +71,6 @@ public:
 	static T min3(T a, T b, T c) {
 		return (((a) < ((((b) < (c)) ? (b) : (c)))) ? (a) : ((((b) < (c)) ? (b) : (c))));
 	}
-
-	static void CenterPos2OpenGLPos(vec2_t pos, int w, int h);
 	static size_t GetScreenPixel(int length, double percent);
 	static void Vector2Rotate(vec2_t out, float x, float y, float rotate);
 

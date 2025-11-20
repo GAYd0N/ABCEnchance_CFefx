@@ -1,14 +1,7 @@
 #pragma once
-#include <vector>
-#include <array>
-#include <optional>
-
-#include "core/resource/weaponresource.h"
 #include <IMetaRenderer.h>
 
-typedef int HSPRITE;
-
-class CCustomHud : public IMetaRendererCallbacks
+class CMetaRendererCallbacks : public IMetaRendererCallbacks
 {
 public:
 	/*
@@ -60,22 +53,5 @@ public:
 		Called from R_RenderEndFrame
 	*/
 	void OnRenderEndFrame()  override;
-
-	void GL_Init(void);
-	void HUD_Init(void);
-	void HUD_VidInit(void);
-	void HUD_Draw(float flTime);
-	void HUD_Reset(void);
-	void HUD_UpdateClientData(client_data_t* cdata, float time);
-	void HUD_Clear(void);
-	void IN_MouseEvent(int mstate);
-	int HUD_AddEntity(int type, struct cl_entity_s* ent, const char* modelname);
-	void HUD_TxferPredictionData(struct entity_state_s* ps, const struct entity_state_s* pps, struct clientdata_s* pcd, const struct clientdata_s* ppcd, struct weapon_data_s* wd, const struct weapon_data_s* pwd);
-
-	bool HasSuit();
-
-	void OnMousePressed(int code);
-
-	std::optional<int> m_bitsWeaponBits = 0;
 };
-extern CCustomHud gCustomHud;
+extern CMetaRendererCallbacks g_MetaRendererCallbacks;

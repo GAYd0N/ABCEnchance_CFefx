@@ -5,18 +5,13 @@
 #include "cl_entity.h"
 #include "mymathlib.h"
 #include "com_model.h"
-#include "triangleapi.h"
-#include "pm_movevars.h"
 #include "cvardef.h"
 #include "httpclient.h"
-
-#include <capstone.h>//thirdparty
 
 #include "Task.h"
 //Def
 #include "vguilocal.h"
 #include "exportfuncs.h"
-#include "Color.h"
 #include "usercmd.h"
 #include "extraprecache.h"
 #include "pm_defs.h"
@@ -28,19 +23,15 @@
 #include "config.h"
 #include "playertrace.h"
 #include "core/events/networkmessage.h"
+#include "core/events/command.h"
+#include "core/events/hudevents.h"
+
+#include "core/MetaRendererCallbacks.h"
 //GL
 #include "glew.h"
-#include "gl_def.h"
-#include "gl_shader.h"
-#include "gl_utility.h"
-#include "gl_draw.h"
 //Base HUD
-#include "CCustomHud.h"
 #include "local.h"
-#include "steam_api.h"
-//HUD
-#include "neteasemusic.h"
-#include "Viewport.h"
+#include "hud/Viewport.h"
 //efx
 #include "efxenchance.h"
 #include "viewmodellag.h"
@@ -83,8 +74,6 @@ static void R_NewMap(void) {
 	//まともになったんだよ~
 	//これ　勣らないから
 	ClearExtraPrecache();
-
-	gCustomHud.HUD_Reset();
 	EFX_Reset();
 	gHookFuncs.R_NewMap();
 }
@@ -182,7 +171,6 @@ void FillEngineAddress() {
 		}
 	}
 }
-extern void ClientDLLHook(void* interface_ptr);
 void FillAddress() {
 	g_dwClientTextBase = g_pMetaHookAPI->GetSectionByName(g_dwClientBase, ".text\0\0\0", &g_dwClientTextSize);
 	if (!g_dwClientTextBase)
@@ -199,7 +187,6 @@ void FillAddress() {
 	auto pfnClientCreateInterface = g_pMetaHookAPI->GetClientFactory();
 	auto SCClient001 = pfnClientCreateInterface("SCClientDLL001", 0);
 	if (pfnClientCreateInterface && SCClient001) {
-		ClientDLLHook(SCClient001);
 		//sig
 #define SC_GETCLIENTCOLOR_SIG "\x8B\x4C\x24\x04\x85\xC9\x2A\x2A\x6B\xC1\x5C\x0F\xBF\x80\x2A\x2A\x2A\x2A\x48\x83"
 		Fill_Sig(SC_GETCLIENTCOLOR_SIG, g_dwClientBase, g_dwClientSize, GetClientColor);
@@ -299,7 +286,6 @@ void GL_Init(void)
 {
 	//Load interface from Renderer.dll
 	MetaRenderer_Init();
-
 	g_pMetaHookAPI->GetVideoMode(&gScreenInfo.iWidth, &gScreenInfo.iHeight, nullptr, nullptr);
 	auto err = glewInit();
 	if (GLEW_OK != err) {
@@ -307,8 +293,10 @@ void GL_Init(void)
 		return;
 	}
 	GL_ShaderInit();
-
-	gCustomHud.GL_Init();
+	if (MetaRenderer())
+	{
+		MetaRenderer()->RegisterRenderCallbacks(&g_MetaRendererCallbacks);
+	}
 }
 
 void HUD_Init(void)
@@ -387,7 +375,7 @@ void HUD_Init(void)
 
 	gExportfuncs.HUD_Init();
 	RegisterNetworkMessageEventTrigger();
-	gCustomHud.HUD_Init();
+	RegisterCommandEvents();
 	GetClientVoiceMgr()->HUD_Init();
 	extern void GameUI_GetInterface();
 	GameUI_GetInterface();
@@ -401,7 +389,7 @@ int HUD_GetStudioModelInterface(int version, struct r_studio_interface_s** ppint
 	return gExportfuncs.HUD_GetStudioModelInterface(version, ppinterface, pstudio);
 }
 
-void FMOD_Shutdown();
+extern void FMOD_Shutdown();
 
 void HUD_Shutdown(void)
 {
@@ -409,7 +397,6 @@ void HUD_Shutdown(void)
 
 	gExportfuncs.HUD_Shutdown();
 
-	gCustomHud.HUD_Clear();
 	GL_FreeShaders();
 	ClearExtraPrecache();
 
@@ -473,7 +460,6 @@ int HUD_VidInit(void)
 	gCVars.pCVarGammaBlend = CVAR_GET_POINTER("r_gamma_blend");
 
 	int result = gExportfuncs.HUD_VidInit();
-	gCustomHud.HUD_VidInit();
 	GetBaseViewPort()->VidInit();
 	return result;
 }
@@ -500,7 +486,6 @@ int HUD_Redraw(float time, int intermission)
 	for (auto h : s_aryVanillianHud) {
 		h->m_iFlags &= ~1;
 	}
-	gCustomHud.HUD_Draw(time);
 	GetBaseViewPort()->SetInterMission(intermission);
 	return gExportfuncs.HUD_Redraw(time, intermission);
 }
@@ -514,7 +499,7 @@ void HUD_TxferLocalOverrides(struct entity_state_s* state, const struct clientda
 int HUD_UpdateClientData(struct client_data_s* c, float f)
 {
 	s_flFov = c->fov;
-	gCustomHud.HUD_UpdateClientData(c, f);
+	HudEvent::OnUpdateClientData(c, f);
 	return gExportfuncs.HUD_UpdateClientData(c, f);
 }
 
@@ -528,7 +513,7 @@ void HUD_ClientMove(struct playermove_s* ppmove, qboolean server)
 
 void HUD_TxferPredictionData(struct entity_state_s* ps, const struct entity_state_s* pps, struct clientdata_s* pcd, const struct clientdata_s* ppcd, struct weapon_data_s* wd, const struct weapon_data_s* pwd)
 {
-	gCustomHud.HUD_TxferPredictionData(ps, pps, pcd, ppcd, wd, pwd);
+	HudEvent::OnTxferPredictionData(ps, pps, pcd, ppcd, wd, pwd);
 	gExportfuncs.HUD_TxferPredictionData(ps, pps, pcd, ppcd, wd, pwd);
 }
 
@@ -567,7 +552,7 @@ void V_CalcRefdef(struct ref_params_s* pparams)
 
 void IN_MouseEvent(int mstate)
 {
-	gCustomHud.IN_MouseEvent(mstate);
+	HudEvent::OnIN_MouseEvent(mstate);
 	gExportfuncs.IN_MouseEvent(mstate);
 }
 
@@ -582,8 +567,7 @@ void CL_CreateMove(float frametime, struct usercmd_s* cmd, int active)
 
 int HUD_AddEntity(int type, struct cl_entity_s* ent, const char* modelname)
 {
-	if (!gCustomHud.HUD_AddEntity(type, ent, modelname))
-		return 0;
+	GetBaseViewPort()->AddEntity(type, ent, modelname);
 	//hook for engon beam
 	if (gCVars.pEgonEfx->value > 0) {
 		if (type == ET_BEAM) {

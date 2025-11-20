@@ -1,29 +1,28 @@
-﻿#include <cmath>
+﻿
 #include <metahook.h>
 #include <string>
-#include <vector>
+#include <algorithm>
 
 #pragma region hlsdk
 #include "cdll_int.h"
 #pragma endregion
 
 #pragma region TODO: remove these mess
-#include <local.h>
+#include "local.h"
 #include "autofunc.h"
-#include <vguilocal.h>
-#include <mymathlib.h>
-#include "Viewport.h"
+#include "vguilocal.h"
 #pragma endregion
 
+#include "hud/Viewport.h"
 #include "core/events/networkmessage.h"
 #include "core/events/command.h"
+#include "core/events/hudevents.h"
 #include "weaponresource.h"
 
 
 #undef max
 #undef min
 
-static cvar_t* s_pFastSwich = nullptr;
 // CWeaponData 实现
 Weapon* WeaponList::operator[](size_t iId) const {
     auto it = m_dicWeaponIds.find(iId);
@@ -102,8 +101,6 @@ void WeaponList::RemoveAll() {
 WeaponList::WeaponList() = default;
 
 void WeaponsResource::Init() {
-    if(!s_pFastSwich)
-        s_pFastSwich = CVAR_GET_POINTER("hud_fastswitch");
     g_EventAmmoX.append([&](int index, int count) {
         this->SetAmmo(index, count);
     });
@@ -129,9 +126,11 @@ void WeaponsResource::Init() {
             }
             Weapon* pWeapon = this->GetWeapon(id);
             this->m_pCurWeapon = pWeapon;
-            pWeapon->iClip = clip;
-            pWeapon->iClip2 = clip2;
-            pWeapon->iState = state;
+            if (pWeapon) {
+                pWeapon->iClip = clip;
+                pWeapon->iClip2 = clip2;
+                pWeapon->iState = state;
+            }
         }
         else {
             switch (id) {
@@ -160,6 +159,10 @@ void WeaponsResource::Init() {
     g_EventCmdPrevWeapon.append([&]() {
         this->SelectSlot(this->m_iNowSlot, -1, true);
         return true;
+    });
+    g_EventHudTxferPredictionData.append([&](struct entity_state_s*, const struct entity_state_s*, struct clientdata_s*, const struct clientdata_s*, struct weapon_data_s*, const struct weapon_data_s* pwd) {
+        auto wp = WeaponData::FromWeaponData(pwd);
+        this->SyncWeapon(wp);
     });
 }
 
@@ -238,9 +241,9 @@ void WeaponsResource::LoadAllWeaponSprites() {
 }
 
 void WeaponsResource::SetSelectWeapon(Weapon* wp, bool bWheel) {
-    if (!wp) return;
-
-    if (s_pFastSwich && s_pFastSwich->value > 0) {
+    if (!wp) 
+        return;
+    if (CVAR_GET_FLOAT("hud_fastswitch") > 0) {
         ServerCmd(wp->szName);
     }
     Viewport_ChooseWeapon(wp);
@@ -398,7 +401,7 @@ void WeaponsResource::SelectSlot(size_t iSlot, int iAdvance, bool bWheel) {
     BuildAviliableWeapons();
     if (m_pAviliableWeaponData.Size() == 0) return;
 
-    iSlot = CMathlib::clamp<size_t>(iSlot, 0, MAX_WEAPON_SLOT - 1);
+    iSlot = std::clamp<size_t>(iSlot, 0, MAX_WEAPON_SLOT - 1);
 
     if (bWheel && !m_pNowSelected) {
         auto it = m_pAviliableWeaponData.Begin();

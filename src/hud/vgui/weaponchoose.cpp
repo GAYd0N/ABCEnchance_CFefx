@@ -7,15 +7,13 @@
 #include <string>
 #include "cvardef.h"
 
-#include "CCustomHud.h"
-
 #include "vgui_controls/spr_image.h"
 #include "vgui_controls/ImageSprPanel.h"
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
 #include "core/resource/playerresource.h"
 
-#include "Viewport.h"
+#include "hud/Viewport.h"
 #include "weaponchoose.h"
 
 extern const clientdata_t* gClientData;
@@ -261,14 +259,15 @@ void CWeaponChoosePanel::ReloadWeaponSpr(){
 	}
 }
 bool CWeaponChoosePanel::ShouldDraw(){
-	
 	if (gPlayerRes.IsInSpectate(gEngfuncs.GetLocalPlayer()->index))
 		return false;
 	if (GetBaseViewPort()->IsHudHide(HUD_HIDEALL | HUD_HIDEWEAPONS))
 		return false;
-	if (!gCustomHud.HasSuit())
+	if (!GetBaseViewPort()->HasSuit())
 		return false;
 	if (gClientData->health <= 0)
+		return false;
+	if (CVAR_GET_FLOAT("hud_fastswitch") > 0)
 		return false;
 	return true;
 }
@@ -288,8 +287,12 @@ void CWeaponChoosePanel::SelectWeapon(){
 	}
 }
 void CWeaponChoosePanel::ChooseWeapon(Weapon* weapon){
+	bool first_open = false;
+	if (!IsVisible()) {
+		PlaySoundByName("common/wpn_hudon.wav", 1);
+		first_open = true;
+	}
 	ShowPanel(true);
-
 	//如果选到空槽位，关闭上次的选择框和高亮spr
 	if (!weapon || !gWR.HasWeapon(weapon)) {
 		if (m_pHandledWeapon)
@@ -298,8 +301,9 @@ void CWeaponChoosePanel::ChooseWeapon(Weapon* weapon){
 		InvalidateLayout();
 		return;
 	}
-
 	m_pSelectBucket->SetVisible(true);
+	if(!first_open)
+		PlaySoundByName("common/wpn_moveselect.wav", 1);
 
 	for (auto iter1 = m_aryPanelList.begin(); iter1 != m_aryPanelList.end(); iter1++) {
 		auto& list = *iter1;

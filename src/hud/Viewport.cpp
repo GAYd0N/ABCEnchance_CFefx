@@ -10,49 +10,47 @@
 #include <vgui/ILocalize.h>
 #include <vgui/IEngineVGui.h>
 #include <vgui_controls/Controls.h>
-#include <vgui_controls/Label.h>
 #include <vgui_controls/AnimationController.h>
 
 #include "local.h"
 #include "vguilocal.h"
-#include "steam_api.h"
 
 #include "core/events/playerinfo.h"
 #include "core/events/networkmessage.h"
 #include "core/events/command.h"
+#include "core/events/hudevents.h"
 #include "core/resource/playerresource.h"
 #include "core/resource/spriteresource.h"
+
 #include "mymathlib.h"
+#include "cdll_int.h"
 
-#include "cfefx.h"
-#include "motd.h"
-#include "popnum.h"
-#include "playerboard.h"
-#include "scoreboard.h"
-#include "vote.h"
-#include "sidetext.h"
-#include "textmenu.h"
-#include "flashlight.h"
-#include "notice.h"
-#include "crosshair.h"
-#include "effect.h"
-#include "health.h"
-#include "ammobar.h"
-#include "dmgtiles.h"
-#include "gindicator.h"
-#include "deadmsg.h"
-#include "neteasemusic.h"
-#include "radar.h"
-#include "ammostack.h"
-#include "itemstack.h"
-#include "weaponstack.h"
-#include "weaponchoose.h"
-#include "itemhighlight.h"
-
-#include "CCustomHud.h"
-
+#include "hud/vgui/motd.h"
+#include "hud/vgui/popnum.h"
+#include "hud/vgui/playerboard.h"
+#include "hud/vgui/scoreboard.h"
+#include "hud/vgui/vote.h"
+#include "hud/vgui/sidetext.h"
+#include "hud/vgui/textmenu.h"
+#include "hud/vgui/flashlight.h"
+#include "hud/vgui/notice.h"
+#include "hud/vgui/crosshair.h"
+#include "hud/vgui/effect.h"
+#include "hud/vgui/health.h"
+#include "hud/vgui/ammobar.h"
+#include "hud/vgui/dmgtiles.h"
+#include "hud/vgui/gindicator.h"
+#include "hud/vgui/deadmsg.h"
+#include "hud/vgui/neteasemusic.h"
+#include "hud/vgui/radar.h"
+#include "hud/vgui/ammostack.h"
+#include "hud/vgui/itemstack.h"
+#include "hud/vgui/weaponstack.h"
+#include "hud/vgui/weaponchoose.h"
+#include "hud/vgui/itemhighlight.h"
+#include "hud/vgui/indicator.h"
+#include "hud/vgui/cfefx.h"
 #include "Viewport.h"
-#include "exportfuncs.h"
 #include "keydefs.h"
 
 using namespace vgui;
@@ -159,8 +157,11 @@ void CViewport::Start(void){
 		wrect_t* rect = gSpriteRes.GetSpriteRect(index.value());
 		this->m_pItemStack->AddItemPickup(spr, rect->left, rect->right, rect->top, rect->bottom);
 		});
-	g_EventDamage.append([&](int, int, int tiles, float*) {
+	g_EventDamage.append([&](int armor, int damage, int tiles, float* from) {
 		this->UpdateTiles(tiles);
+		if (!this->m_pIndicator->IsVisible())
+			this->m_pIndicator->SetVisible(true);
+		this->m_pIndicator->SetHitIndicator(damage, armor, from);
 		});
 	g_EventBattery.append([&](int armor) {
 		this->m_pHealthPanel->SetArmor(armor);
@@ -341,6 +342,42 @@ void CViewport::Start(void){
 	g_EventCmdAttack1.append([&]() {
 		return !this->m_pWeaponChoose->BlockAttackOnce();
 		});
+	g_EventHudUpdateClientData.append([&](client_data_t* cdata, float time) {
+		//check spectate
+		float newuser = gEngfuncs.GetLocalPlayer()->curstate.iuser1;
+		static float iuser;
+		if (iuser != newuser) {
+			this->SetSpectate(newuser > 0);
+			iuser = newuser;
+		}
+		if (!this->m_bitsWeaponBits.has_value() || this->m_bitsWeaponBits != cdata->iWeaponBits) {
+			bool hasSuit = (cdata->iWeaponBits & (1 << WEAPON_SUIT)) != 0;
+			m_pSidePanel->ShowPanel(hasSuit && (gCVars.pEccoEnable->value > 0));
+			m_pFlashLight->ShowPanel(hasSuit);
+			m_pCrossHairPanel->ShowPanel(hasSuit && (gCVars.pDynamicCrossHair->value > 0));
+			m_pHealthPanel->ShowPanel(hasSuit);
+			m_pAmmoPanel->ShowPanel(hasSuit);
+			m_pDmgTiles->ShowPanel(hasSuit);
+			m_pWeaponChoose->ShowPanel(hasSuit);
+		}
+		m_bitsWeaponBits = cdata->iWeaponBits;
+
+		//check lj
+		static bool lj = false;
+		bool nlj = std::atoi(gEngfuncs.PhysInfo_ValueForKey("slj"));
+		if (lj != nlj) {
+			m_pHealthPanel->SetLongJump(nlj);
+			lj = nlj;
+		}
+	});
+	g_EventHudMousePressed.append([&](int code) {
+		switch (code) {
+		case vgui::MouseCode::MOUSE_LEFT: {
+			this->GetWeaponChoosePanel()->SelectWeapon();
+			break;
+		}
+		}
+	});
 #pragma endregion
 
 	AddNewPanel(m_pRadar = new CRadarPanel());
@@ -372,36 +409,38 @@ void CViewport::Start(void){
 	AddNewPanel(m_pItemStack = new CItemStackPanel());
 	AddNewPanel(m_pWeaponStack = new CWeaponStackPanel());
 	AddNewPanel(m_pWeaponChoose = new CWeaponChoosePanel());
+	AddNewPanel(m_pIndicator = new CIndicatorPanel());
 }
 
 void CViewport::SetParent(VPANEL vPanel){
 	BaseClass::SetParent(vPanel);
-//	m_pScorePanel->SetParent(GetVPanel());
-//	m_pVotePanel->SetParent(GetVPanel());
-//	m_pMOTDPanel->SetParent(GetVPanel());
-//	m_pSidePanel->SetParent(GetVPanel());
-//	m_pTextMenu->SetParent(GetVPanel());
-//	m_pFlashLight->SetParent(GetVPanel());
-//	m_pNotice->SetParent(GetVPanel());
-//	m_pNoticeCenter->SetParent(GetVPanel());
-//	m_pCrossHairPanel->SetParent(GetVPanel());
-//	m_pEffectPanel->SetParent(GetVPanel());
-//	m_pHealthPanel->SetParent(GetVPanel());
-//	m_pAmmoPanel->SetParent(GetVPanel());
-//	m_pDmgTiles->SetParent(GetVPanel());
-//	m_pGIndicator->SetParent(GetVPanel());
-//	m_pDeahMsg->SetParent(GetVPanel());
-//#ifdef __HAS_NETEASE_API
-//	m_pNeteaseMusic->SetParent(GetVPanel());
-//#endif
-//	m_pRadar->SetParent(GetVPanel());
-//	m_pAmmoStack->SetParent(GetVPanel());
-//	m_pItemStack->SetParent(GetVPanel());
-//	m_pWeaponStack->SetParent(GetVPanel());
-//	m_pWeaponChoose->SetParent(GetVPanel());
-//	for (size_t i = 0; i < 32; i++) {
-//		m_pPlayerInfoPanels[i]->SetParent(GetVPanel());
-//	}
+	m_pScorePanel->SetParent(GetVPanel());
+	m_pVotePanel->SetParent(GetVPanel());
+	m_pMOTDPanel->SetParent(GetVPanel());
+	m_pSidePanel->SetParent(GetVPanel());
+	m_pTextMenu->SetParent(GetVPanel());
+	m_pFlashLight->SetParent(GetVPanel());
+	m_pNotice->SetParent(GetVPanel());
+	m_pNoticeCenter->SetParent(GetVPanel());
+	m_pCrossHairPanel->SetParent(GetVPanel());
+	m_pEffectPanel->SetParent(GetVPanel());
+	m_pHealthPanel->SetParent(GetVPanel());
+	m_pAmmoPanel->SetParent(GetVPanel());
+	m_pDmgTiles->SetParent(GetVPanel());
+	m_pGIndicator->SetParent(GetVPanel());
+	m_pDeahMsg->SetParent(GetVPanel());
+#ifdef __HAS_NETEASE_API
+	m_pNeteaseMusic->SetParent(GetVPanel());
+#endif
+	m_pRadar->SetParent(GetVPanel());
+	m_pAmmoStack->SetParent(GetVPanel());
+	m_pItemStack->SetParent(GetVPanel());
+	m_pWeaponStack->SetParent(GetVPanel());
+	m_pWeaponChoose->SetParent(GetVPanel());
+	m_pIndicator->SetParent(GetVPanel());
+	for (size_t i = 0; i < 32; i++) {
+		m_pPlayerInfoPanels[i]->SetParent(GetVPanel());
+	}
 }
 
 void CViewport::AddNewPanel(IViewportPanel* panel){
@@ -423,6 +462,8 @@ void CViewport::Think(void){
 }
 
 void CViewport::VidInit(void){
+	gSpriteRes.VidInit();
+	gWR.VidInit();
 	Reset();
 }
 
@@ -436,6 +477,7 @@ void CViewport::Reset() {
 	gPlayerRes.ResetAll();
 	gTeamRes.ResetAll();
 	m_iInterMission = 0;
+	m_bitsWeaponBits.reset();
 	extern void CloseVoteMenuDialog();
 	CloseVoteMenuDialog();
 }
@@ -482,9 +524,6 @@ bool CViewport::IsScoreBoardVisible(){
 }
 void CViewport::ShowScoreBoard(){
 	m_pScorePanel->ShowPanel(true);
-}
-void CViewport::LongjumpCallBack(bool state){
-	m_pHealthPanel->SetLongJump(state);
 }
 void CViewport::HideScoreBoard(){
 	m_pScorePanel->ShowPanel(false);
@@ -592,7 +631,10 @@ void CViewport::ShowCrossHair(bool on) {
 }
 
 bool CViewport::HasSuit() {
-	return gCustomHud.HasSuit();
+	if (!m_bitsWeaponBits.has_value())
+		return false;
+	constexpr auto WEAPON_SUIT = 31;
+	return (m_bitsWeaponBits.value() & (1 << WEAPON_SUIT)) != 0;
 }
 
 bool CViewport::SelectTextMenuItem(int slot) {
@@ -601,17 +643,6 @@ bool CViewport::SelectTextMenuItem(int slot) {
 		return true;
 	}
 	return false;
-}
-
-void CViewport::WeaponBitsChangeCallback(int bits){
-	bool hasSuit = (bits & (1 << WEAPON_SUIT)) != 0;
-	m_pSidePanel->ShowPanel(hasSuit && (gCVars.pEccoEnable->value > 0));
-	m_pFlashLight->ShowPanel(hasSuit);
-	m_pCrossHairPanel->ShowPanel(hasSuit && (gCVars.pDynamicCrossHair->value > 0));
-	m_pHealthPanel->ShowPanel(hasSuit);
-	m_pAmmoPanel->ShowPanel(hasSuit);
-	m_pDmgTiles->ShowPanel(hasSuit);
-	m_pWeaponChoose->ShowPanel(hasSuit);
 }
 bool CViewport::IsHudHide(int HideToken) {
 	return (m_bitsHideHUDDisplay & HideToken) != 0;

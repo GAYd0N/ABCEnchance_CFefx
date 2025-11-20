@@ -1,9 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <optional>
 #include "vgui_controls/Panel.h"
-
-#include "core/resource/weaponresource.h"
 
 #ifndef VGUI_IVIEWPORTPANEL_H
 class IViewportPanel;
@@ -20,6 +19,7 @@ const enum {
 	HUD_HIDECUSTOM2 = (1 << 7)
 };
 constexpr auto WEAPON_SUIT = 31;
+constexpr auto MAX_SERVERNAME_LENGTH = 256;
 
 class CPlayerInfoPanel;
 class CMotdPanel;
@@ -44,6 +44,7 @@ class CItemStackPanel;
 class CWeaponStackPanel;
 class CWeaponChoosePanel;
 class CItemHighLightPanel;
+class CIndicatorPanel;
 
 namespace vgui {
 	class CScorePanel;
@@ -78,9 +79,7 @@ public:
 
 	bool HasSuit();
 	bool SelectTextMenuItem(int slot);
-	void WeaponBitsChangeCallback(int bits);
 	bool IsHudHide(int HideToken);
-	void LongjumpCallBack(bool state);
 
 	HScheme GetBaseScheme();
 
@@ -168,11 +167,13 @@ private:
 	CWeaponStackPanel* m_pWeaponStack = nullptr;
 	CWeaponChoosePanel* m_pWeaponChoose = nullptr;
 	CItemHighLightPanel* m_pItemHighLightPanel = nullptr;
+	CIndicatorPanel* m_pIndicator = nullptr;
 
 	vgui::HScheme m_hBaseScheme = 0;
 	int m_iInterMission = 0;
 	int m_bitsHideHUDDisplay = 0;
 	bool m_bInScore;
+	std::optional<int> m_bitsWeaponBits = 0;
 
 	char m_szServerName[MAX_SERVERNAME_LENGTH] = "<ERROR>";
 	char m_szNextMapName[MAX_SERVERNAME_LENGTH] = "<ERROR>";

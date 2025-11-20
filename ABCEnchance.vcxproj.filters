@@ -8,9 +8,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Public\Header\HUD">
-      <UniqueIdentifier>{706e3ef1-714a-49ad-a06a-c77ac042866e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Public\Header\Utility">
       <UniqueIdentifier>{f37789c1-daa3-4088-96af-71554c4e4a7d}</UniqueIdentifier>
     </Filter>
@@ -20,9 +17,6 @@
     <Filter Include="Public\Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Public\Source\HUD">
-      <UniqueIdentifier>{f1c05770-a298-4602-9a80-8c527af7d8ab}</UniqueIdentifier>
     </Filter>
     <Filter Include="Public\Source\Utility">
       <UniqueIdentifier>{a51af813-27e9-4365-a9ed-bdddee0a49b8}</UniqueIdentifier>
@@ -54,12 +48,6 @@
     <Filter Include="SourceSDK\vstdlib">
       <UniqueIdentifier>{d217d160-6b96-4e48-95f4-cc8d170da775}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Public\Source\HUD\vgui">
-      <UniqueIdentifier>{3e33e7f1-0416-451d-9d2b-dfc1263ecde5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Public\Header\HUD\vgui">
-      <UniqueIdentifier>{52162b84-c88b-46d0-a67b-051b77482b11}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Public\Header\Utility\opengl">
       <UniqueIdentifier>{1fe854bc-38cf-404f-ab0b-c8eda68d0197}</UniqueIdentifier>
     </Filter>
@@ -90,9 +78,6 @@
     <Filter Include="vgui_controls\base">
       <UniqueIdentifier>{d6358a88-bc48-463b-9218-d2fcf8a74a7e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Public\Header\HUD\legacy">
-      <UniqueIdentifier>{0a7e9ba5-0189-4d79-a984-b4060d980d44}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Public\Header\LIb">
       <UniqueIdentifier>{36642d05-7eed-4e41-bd6d-17935118c305}</UniqueIdentifier>
     </Filter>
@@ -108,9 +93,6 @@
     <Filter Include="Public\Thirdparty\wadlib">
       <UniqueIdentifier>{2ed9b323-3371-4758-883e-76bc89d24f96}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Public\Source\HUD\legacy">
-      <UniqueIdentifier>{642f09f6-101f-49f4-8f61-764b2fe93e80}</UniqueIdentifier>
-    </Filter>
     <Filter Include="vgui2\interface">
       <UniqueIdentifier>{31c8abc4-ccdf-48c3-9926-a4c81fec055b}</UniqueIdentifier>
     </Filter>
@@ -125,6 +107,12 @@
     </Filter>
     <Filter Include="Public\core\events">
       <UniqueIdentifier>{3a289c31-fcb6-48e7-aadd-f61a9fa5258c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\hud">
+      <UniqueIdentifier>{df4e0ca2-b4a9-41a0-9806-10b1d952c248}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\hud\vgui">
+      <UniqueIdentifier>{be056b65-0166-4f88-bda2-d9297b2c5ded}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -224,15 +212,6 @@
     <ClCompile Include="VGUI2\Border.cpp">
       <Filter>vgui2</Filter>
     </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\scoreboard.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\CCustomHud.cpp">
-      <Filter>Public\Source\HUD</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\Viewport.cpp">
-      <Filter>Public\Source\HUD</Filter>
-    </ClCompile>
     <ClCompile Include="src\Source\Utility\opengl\gl_def.cpp">
       <Filter>Public\Source\Utility\opengl</Filter>
     </ClCompile>
@@ -275,65 +254,14 @@
     <ClCompile Include="src\Source\plugins.cpp">
       <Filter>Public\Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\playerboard.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\vote.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\popnum.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\motd.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
     <ClCompile Include="src\Particleman\ClientParticleMan.cpp">
       <Filter>Public\Particleman</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\sidetext.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\textmenu.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\flashlight.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\notice.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\crosshair.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\effect.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\health.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\ammobar.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\dmgtiles.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\gindicator.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\deadmsg.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
     </ClCompile>
     <ClCompile Include="VGUI2\GameUI\BasePanel.cpp">
       <Filter>vgui2\gameui</Filter>
     </ClCompile>
     <ClCompile Include="src\Source\soundengine.cpp">
       <Filter>Public\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\neteasemusic.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\radar.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
     </ClCompile>
     <ClCompile Include="VGUI2\GameUI\OptionAdvancedDlg.cpp">
       <Filter>vgui2\gameui</Filter>
@@ -644,41 +572,14 @@
     <ClCompile Include="src\thirdparty\wadlib\wadfile.cpp">
       <Filter>Public\Thirdparty\wadlib</Filter>
     </ClCompile>
-    <ClCompile Include="src\Source\clientdll.cpp">
-      <Filter>Public\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\cctv.cpp">
-      <Filter>Public\Source\HUD\legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\indicator.cpp">
-      <Filter>Public\Source\HUD\legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\ammostack.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\weaponstack.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\itemstack.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\basestackpanel.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
     <ClCompile Include="SourceSDK\filesystem.cpp">
       <Filter>SourceSDK</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\weaponchoose.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
     </ClCompile>
     <ClCompile Include="src\Source\autofunc.cpp">
       <Filter>Public\Source</Filter>
     </ClCompile>
     <ClCompile Include="src\Source\playertrace.cpp">
       <Filter>Public\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\itemhighlight.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
     </ClCompile>
     <ClCompile Include="src\Source\steamrichpresence.cpp">
       <Filter>Public\Source</Filter>
@@ -721,6 +622,90 @@
     </ClCompile>
     <ClCompile Include="src\core\events\command.cpp">
       <Filter>Public\core\events</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\ammobar.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\ammostack.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\basestackpanel.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\crosshair.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\deadmsg.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\dmgtiles.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\effect.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\flashlight.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\gindicator.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\health.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\itemhighlight.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\itemstack.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\motd.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\neteasemusic.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\notice.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\playerboard.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\popnum.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\radar.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\scoreboard.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\sidetext.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\textmenu.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\vote.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\weaponchoose.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\weaponstack.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\Viewport.cpp">
+      <Filter>Public\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\indicator.cpp">
+      <Filter>Public\hud\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\events\hudevents.cpp">
+      <Filter>Public\core\events</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\MetaRendererCallbacks.cpp">
+      <Filter>Public\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -958,15 +943,6 @@
     <ClInclude Include="SourceSDK\tier1\UtlSortVector.h">
       <Filter>SourceSDK\tier1</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\scoreboard.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\CCustomHud.h">
-      <Filter>Public\Header\HUD</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\Viewport.h">
-      <Filter>Public\Header\HUD</Filter>
-    </ClInclude>
     <ClInclude Include="src\Header\Utility\parsemsg.h">
       <Filter>Public\Header\Utility</Filter>
     </ClInclude>
@@ -1027,18 +1003,6 @@
     <ClInclude Include="src\Header\viewmodellag.h">
       <Filter>Public\Header</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\playerboard.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\vote.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\popnum.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\motd.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
     <ClInclude Include="src\Particleman\pman_triangleffect.h">
       <Filter>Public\Particleman</Filter>
     </ClInclude>
@@ -1051,44 +1015,11 @@
     <ClInclude Include="src\Particleman\IParticleMan.h">
       <Filter>Public\Particleman</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\sidetext.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\textmenu.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\flashlight.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\notice.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
     <ClInclude Include="SourceSDK\vstdlib\strtools.h">
       <Filter>SourceSDK\vstdlib</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\crosshair.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\effect.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
     <ClInclude Include="src\Header\Var\StudioModelRenderer.h">
       <Filter>Public\Header\Var</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\health.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\ammobar.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\dmgtiles.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\gindicator.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\deadmsg.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
     <ClInclude Include="VGUI2\GameUI\BasePanel.h">
       <Filter>vgui2\gameui</Filter>
@@ -1096,14 +1027,8 @@
     <ClInclude Include="src\Header\soundengine.h">
       <Filter>Public\Header</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\neteasemusic.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
     <ClInclude Include="SourceSDK\tier2\tier2.h">
       <Filter>SourceSDK\tier2</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\radar.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
     <ClInclude Include="VGUI2\ClientVGUI.h">
       <Filter>vgui2</Filter>
@@ -1378,12 +1303,6 @@
     <ClInclude Include="vgui_controls\FileOpenDialog.h">
       <Filter>vgui_controls\dialog</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\cctv.h">
-      <Filter>Public\Header\HUD\legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\indicator.h">
-      <Filter>Public\Header\HUD\legacy</Filter>
-    </ClInclude>
     <ClInclude Include="src\Header\Utility\client_steam_context.h">
       <Filter>Public\Header\LIb</Filter>
     </ClInclude>
@@ -1471,23 +1390,8 @@
     <ClInclude Include="src\thirdparty\qrcodegen.h">
       <Filter>Public\Thirdparty</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\ammostack.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\basestackpanel.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\weaponstack.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\itemstack.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
-    </ClInclude>
     <ClInclude Include="SourceSDK\filesystem.h">
       <Filter>SourceSDK</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\weaponchoose.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
     <ClInclude Include="src\Header\autofunc.h">
       <Filter>Public\Header</Filter>
@@ -1497,9 +1401,6 @@
     </ClInclude>
     <ClInclude Include="src\Header\playertrace.h">
       <Filter>Public\Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\itemhighlight.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
     </ClInclude>
     <ClInclude Include="src\Header\steamrichpresence.h">
       <Filter>Public\Header</Filter>
@@ -1533,6 +1434,90 @@
     </ClInclude>
     <ClInclude Include="src\core\events\playerinfo.h">
       <Filter>Public\core\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\ammobar.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\ammostack.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\basestackpanel.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\crosshair.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\deadmsg.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\dmgtiles.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\effect.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\flashlight.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\gindicator.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\health.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\itemhighlight.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\itemstack.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\motd.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\neteasemusic.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\notice.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\playerboard.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\popnum.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\radar.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\scoreboard.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\sidetext.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\textmenu.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\vote.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\weaponchoose.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\weaponstack.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\Viewport.h">
+      <Filter>Public\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hud\vgui\indicator.h">
+      <Filter>Public\hud\vgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\events\hudevents.h">
+      <Filter>Public\core\events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\MetaRendererCallbacks.h">
+      <Filter>Public\core</Filter>
     </ClInclude>
     <ClInclude Include="src\Header\HUD\vgui\cfefx.h">
       <Filter>Public\Header\HUD\vgui</Filter>

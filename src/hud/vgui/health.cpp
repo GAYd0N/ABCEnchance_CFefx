@@ -1,13 +1,5 @@
 #pragma once
-#include <vector>
 #include <metahook.h>
-
-#include <vgui/IImage.h>
-#include <vgui/ISurface.h>
-#include <vgui/ISystem.h>
-#include <vgui/ILocalize.h>
-
-#include <vgui_controls/tga_image.h>
 #include <vgui_controls/Label.h>
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/ImageClipPanel.h"
@@ -48,6 +40,9 @@ CHealthPanel::CHealthPanel()
 
 	m_iRestoredHealWide = m_pHealthImagePanel->GetWide();
 	m_iRestoredArmorWide = m_pArmorImagePanel->GetWide();
+
+	gCVars.pDangerHealth = CREATE_CVAR("hud_danger_health", "45", FCVAR_VALUE, nullptr);
+	gCVars.pDangerArmor = CREATE_CVAR("hud_danger_armor", "45", FCVAR_VALUE, nullptr);
 }
 const char* CHealthPanel::GetName(){
 	return VIEWPORT_HEALTH_NAME;
