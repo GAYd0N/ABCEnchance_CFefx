@@ -599,9 +599,6 @@
     <ClCompile Include="src\Source\Utility\qrcodegen.cpp">
       <Filter>Public\Thirdparty</Filter>
     </ClCompile>
-    <ClCompile Include="src\Source\HUD\vgui\cfefx.cpp">
-      <Filter>Public\Source\HUD\vgui</Filter>
-    </ClCompile>
     <ClCompile Include="src\Source\Utility\MetaRenderer.cpp">
       <Filter>Public\Source\Utility</Filter>
     </ClCompile>
@@ -706,6 +703,9 @@
     </ClCompile>
     <ClCompile Include="src\core\MetaRendererCallbacks.cpp">
       <Filter>Public\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hud\vgui\cfefx.cpp">
+      <Filter>Public\hud\vgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1519,8 +1519,8 @@
     <ClInclude Include="src\core\MetaRendererCallbacks.h">
       <Filter>Public\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\HUD\vgui\cfefx.h">
-      <Filter>Public\Header\HUD\vgui</Filter>
+    <ClInclude Include="src\hud\vgui\cfefx.h">
+      <Filter>Public\hud\vgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

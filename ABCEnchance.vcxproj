@@ -215,6 +215,7 @@ $(RapidJsonCheckRequirements)</Command>
     <ClCompile Include="src\hud\vgui\ammobar.cpp" />
     <ClCompile Include="src\hud\vgui\ammostack.cpp" />
     <ClCompile Include="src\hud\vgui\basestackpanel.cpp" />
+    <ClCompile Include="src\hud\vgui\cfefx.cpp" />
     <ClCompile Include="src\hud\vgui\crosshair.cpp" />
     <ClCompile Include="src\hud\vgui\deadmsg.cpp" />
     <ClCompile Include="src\hud\vgui\dmgtiles.cpp" />
@@ -498,6 +499,7 @@ $(RapidJsonCheckRequirements)</Command>
     <ClInclude Include="src\hud\vgui\ammobar.h" />
     <ClInclude Include="src\hud\vgui\ammostack.h" />
     <ClInclude Include="src\hud\vgui\basestackpanel.h" />
+    <ClInclude Include="src\hud\vgui\cfefx.h" />
     <ClInclude Include="src\hud\vgui\crosshair.h" />
     <ClInclude Include="src\hud\vgui\deadmsg.h" />
     <ClInclude Include="src\hud\vgui\dmgtiles.h" />

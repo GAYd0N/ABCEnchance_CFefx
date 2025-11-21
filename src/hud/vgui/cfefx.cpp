@@ -8,7 +8,7 @@
 
 #include "local.h"
 #include "vguilocal.h"
-#include "Viewport.h"
+#include "hud/Viewport.h"
 #include "cfefx.h"
 
 #define VIEWPORT_CFEFXPANEL_NAME "CfefxPanel"
