@@ -2,17 +2,22 @@
 
 #include <cmath>
 #include <algorithm>
-#include "mymathlib.h"
 
-#include "local.h"
+#include "IMetaRenderer.h"
 
-#include "vguilocal.h"
-#include <IMetaRenderer.h>
+
+
+#include "utility/util.h"
+
+#include "utility/vgui_util.h"
+
 
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/avatar_image.h"
 
+#include "core/library/mymathlib.h"
 #include "core/resource/playerresource.h"
+
 #include "hud/Viewport.h"
 #include "radar.h"
 

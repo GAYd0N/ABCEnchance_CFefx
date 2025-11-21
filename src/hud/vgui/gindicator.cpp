@@ -3,10 +3,10 @@
 
 #include <metahook.h>
 
-#include "local.h"
-#include "vguilocal.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
 
-#include "mymathlib.h"
+#include "core/library/mymathlib.h"
 
 #include "gindicator.h"
 

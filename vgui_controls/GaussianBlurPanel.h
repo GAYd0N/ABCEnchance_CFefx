@@ -15,7 +15,7 @@
 #include "Panel.h"
 
 #include <IMetaRenderer.h>
-#include "gl_common.h"
+#include "core/opengl/gl_common.h"
 
 namespace vgui
 {

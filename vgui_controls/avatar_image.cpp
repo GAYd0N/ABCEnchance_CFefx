@@ -6,7 +6,7 @@
 #pragma once
 #include <metahook.h>
 #include <string>
-#include "vguilocal.h"
+#include "utility/vgui_util.h"
 #include "steam_api.h"
 
 #include "vgui_controls/Panel.h"
@@ -14,7 +14,6 @@
 #include "vgui/ISurface.h"
 
 #include "tga_image.h"
-#include "client_steam_context.h"
 #include "avatar_image.h"
 
 #include "core/resource/playerresource.h"

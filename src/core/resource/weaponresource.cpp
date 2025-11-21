@@ -8,15 +8,17 @@
 #pragma endregion
 
 #pragma region TODO: remove these mess
-#include "local.h"
-#include "autofunc.h"
-#include "vguilocal.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
 #pragma endregion
 
 #include "hud/Viewport.h"
 #include "core/events/networkmessage.h"
 #include "core/events/command.h"
 #include "core/events/hudevents.h"
+
+#include "core/module/autofunc.h"
+
 #include "weaponresource.h"
 
 

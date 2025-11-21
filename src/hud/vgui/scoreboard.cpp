@@ -15,13 +15,13 @@
 #include <vgui_controls/Menu.h>
 #include <vgui_controls/MemoryBitmap.h>
 
-#include "local.h"
-#include "vguilocal.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
 
 #include "core/resource/playerresource.h"
 
-#include "Task.h"
-#include "httpclient.h"
+#include "core/library/Task.h"
+#include "core/library/httpclient.h"
 
 #include <FreeImage.h>
 
@@ -29,7 +29,7 @@
 #include "avatar_image.h"
 
 //VoiceShit
-#include "voice_status.h"
+#include "core/module/voice_status.h"
 
 #include "hud/Viewport.h"
 

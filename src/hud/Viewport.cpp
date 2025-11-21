@@ -12,8 +12,8 @@
 #include <vgui_controls/Controls.h>
 #include <vgui_controls/AnimationController.h>
 
-#include "local.h"
-#include "vguilocal.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
 
 #include "core/events/playerinfo.h"
 #include "core/events/networkmessage.h"
@@ -22,7 +22,8 @@
 #include "core/resource/playerresource.h"
 #include "core/resource/spriteresource.h"
 
-#include "mymathlib.h"
+#include "core/library/mymathlib.h"
+
 #include "cdll_int.h"
 
 #include "hud/vgui/motd.h"

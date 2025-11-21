@@ -8,11 +8,12 @@
 #include <vgui/ILocalize.h>
 #include <vgui_controls/Label.h>
 
-#include "local.h"
-#include "vguilocal.h"
-#include "mymathlib.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
+
 #include "steamclientpublic.h"
 #include "core/resource/playerresource.h"
+#include "core/library/mymathlib.h"
 
 #include "vgui_controls/ImagePanel.h"
 

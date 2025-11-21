@@ -1,22 +1,23 @@
 #include <metahook.h>
 
-#include"local.h"
-
-#include <vguilocal.h>
 #include <map>
 #include <string>
+
 #include "cvardef.h"
 
 #include "vgui_controls/spr_image.h"
 #include "vgui_controls/ImageSprPanel.h"
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
+
+#include "utility/util.h"
+#include "utility/vgui_util.h"
+
 #include "core/resource/playerresource.h"
 
 #include "hud/Viewport.h"
 #include "weaponchoose.h"
 
-extern const clientdata_t* gClientData;
 static int g_iRainbowColorCounter = 0;
 CWeaponChooseItem::CWeaponChooseItem(vgui::Panel* parent, Weapon* wep) : BaseClass(parent, "WeaponItem") {
 	m_pWeapon = wep;
@@ -265,7 +266,7 @@ bool CWeaponChoosePanel::ShouldDraw(){
 		return false;
 	if (!GetBaseViewPort()->HasSuit())
 		return false;
-	if (gClientData->health <= 0)
+	if (gPlayerRes.GetLocalPlayerInfo()->m_iHealth <= 0)
 		return false;
 	if (CVAR_GET_FLOAT("hud_fastswitch") > 0)
 		return false;

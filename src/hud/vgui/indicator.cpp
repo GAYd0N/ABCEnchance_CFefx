@@ -4,10 +4,13 @@
 #include <array>
 #include <vgui_controls/ImagePanel.h>
 #include <vgui_controls/AnimationController.h>
-#include "mymathlib.h"
-#include "vguilocal.h"
-#include "local.h"
-#include "gl_draw.h"
+
+#include "core/library/mymathlib.h"
+
+#include "utility/vgui_util.h"
+#include "utility/util.h"
+
+#include "core/opengl/gl_draw.h"
 #include "indicator.h"
 #undef max
 
@@ -24,6 +27,9 @@ enum IndicatorStyle{
 class IndicatorImage : public IImage {
 public:
     virtual void Paint() override {
+        float alpha_multi = surface()->DrawGetAlphaMultiplier();
+        if(alpha_multi <= 0.0f)
+			return;
         if (m_iTexture < 0)
             return;
         int cvar_value = static_cast<int>(CVAR_GET_FLOAT(CVAR_STYLE_NAME));
@@ -76,7 +82,6 @@ public:
         rotateAndOffset(vecHUD[2], img_half_w, y_top);
         rotateAndOffset(vecHUD[3], -img_half_w, y_top);
 
-        float alpha_multi = surface()->DrawGetAlphaMultiplier();
         DrawTexturePos(m_iTexture, kRenderTransAdd, vecHUD[0], vecHUD[1], vecHUD[2], vecHUD[3],
             m_DrawColor.r(), m_DrawColor.g(), m_DrawColor.b(), m_DrawColor.a() * alpha_multi);
     }

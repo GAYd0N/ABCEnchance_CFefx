@@ -8,13 +8,14 @@
 #include "event_api.h"
 #include "triangleapi.h"
 
-#include "mymathlib.h"
 #include "cvardef.h"
-#include "extraprecache.h"
 #include "exportfuncs.h"
 
-#include "vguilocal.h"
-#include "local.h"
+#include "utility/vgui_util.h"
+#include "utility/util.h"
+
+#include "core/library/mymathlib.h"
+#include "core/module/extraprecache.h"
 
 #include "vgui_controls/Label.h"
 #include "vgui_controls/ImagePanel.h"

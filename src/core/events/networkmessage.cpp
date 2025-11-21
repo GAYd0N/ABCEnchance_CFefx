@@ -1,7 +1,7 @@
 #pragma once
 #include <metahook.h>
-#include "parsemsg.h"
 #include "core/resource/weaponresource.h"
+#include "core/library/NetworkMessageReader.h"
 #include "strtools.h"
 #include "hud/Viewport.h"
 #include "networkmessage.h"
@@ -14,32 +14,32 @@
 
 DEFINE_NETMESSAGE_HOOK(AmmoX, int, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int iIndex = READ_BYTE();
-	int iCount = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int iIndex = msg.readByte();
+	int iCount = msg.readLong();
 	g_EventAmmoX(iIndex, iCount);
 	return m_pfnAmmoX(pszName, iSize, pbuf);
 }
 
 DEFINE_NETMESSAGE_HOOK(WeaponList, Weapon*)
 {
-	BEGIN_READ(pbuf, iSize);
+	NetworkMessageReader msg(pbuf, iSize);
 	Weapon recived_weapon{};
 	//read data
-	Q_strcpy(recived_weapon.szName, READ_STRING());
+	Q_strcpy(recived_weapon.szName, msg.readString().c_str());
 	Q_strcpy(recived_weapon.szSprName, recived_weapon.szName);
-	recived_weapon.iAmmoType = READ_CHAR();
-	recived_weapon.iMax1 = READ_LONG();
+	recived_weapon.iAmmoType = msg.readChar();
+	recived_weapon.iMax1 = msg.readLong();
 	if (recived_weapon.iMax1 == 255)
 		recived_weapon.iMax1 = -1;
-	recived_weapon.iAmmo2Type = READ_CHAR();
-	recived_weapon.iMax2 = READ_LONG();
+	recived_weapon.iAmmo2Type = msg.readChar();
+	recived_weapon.iMax2 = msg.readLong();
 	if (recived_weapon.iMax2 == 255)
 		recived_weapon.iMax2 = -1;
-	recived_weapon.iSlot = READ_CHAR();
-	recived_weapon.iSlotPos = READ_CHAR();
-	recived_weapon.iId = READ_SHORT();
-	recived_weapon.iFlags = READ_BYTE();
+	recived_weapon.iSlot = msg.readChar();
+	recived_weapon.iSlotPos = msg.readChar();
+	recived_weapon.iId = msg.readShort();
+	recived_weapon.iFlags = msg.readByte();
 	g_EventWeaponList(&recived_weapon);
 	return m_pfnWeaponList(pszName, iSize, pbuf);
 }
@@ -50,154 +50,154 @@ DEFINE_NETMESSAGE_HOOK(InitHUD)
 }
 DEFINE_NETMESSAGE_HOOK(CustWeapon, int, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	int id = READ_SHORT();
-	std::string_view name = READ_STRING();
+	NetworkMessageReader msg(pbuf, iSize);
+	int id = msg.readShort();
+	std::string name = msg.readString();
 	if (name.size() != 0) {
-		g_EventCustWeapon(id, name.data());
+		g_EventCustWeapon(id, name.c_str());
 	}
 	return m_pfnCustWeapon(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(CurWeapon, int, int, int, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int iState = READ_BYTE();
-	int iId = READ_SHORT();
-	int iClip = READ_LONG();
-	int iClip2 = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int iState = msg.readByte();
+	int iId = msg.readShort();
+	int iClip = msg.readLong();
+	int iClip2 = msg.readLong();
 	g_EventCurWeapon(iState, iId, iClip, iClip2);
 	return m_pfnCurWeapon(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(HideWeapon, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int token = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int token = msg.readByte();
 	g_EventHideWeapon(token);
 	return m_pfnHideWeapon(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(HideHUD, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int token = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int token = msg.readByte();
 	g_EventHideHUD(token);
 	return m_pfnHideHUD(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(WeaponSpr, int, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	int id = READ_SHORT();
-	std::string_view name = READ_STRING();
+	NetworkMessageReader msg(pbuf, iSize);
+	int id = msg.readShort();
+	std::string name = msg.readString();
 	if (name.size() > 0)
-		g_EventWeaponSpr(id, name.data());
+		g_EventWeaponSpr(id, name.c_str());
 	return m_pfnWeaponSpr(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(WeapPickup, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int iIndex = READ_SHORT();
+	NetworkMessageReader msg(pbuf, iSize);
+	int iIndex = msg.readShort();
 	g_EventWeapPickup(iIndex);
 	return m_pfnWeapPickup(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(AmmoPickup, int, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int iIndex = READ_BYTE();
-	int iCount = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int iIndex = msg.readByte();
+	int iCount = msg.readLong();
 	g_EventAmmoPickup(iIndex, iCount);
 	return m_pfnAmmoPickup(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(ItemPickup, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	const char* szName = READ_STRING();
-	g_EventItemPickup(szName);
+	NetworkMessageReader msg(pbuf, iSize);
+	auto szName = msg.readString();
+	g_EventItemPickup(szName.c_str());
 	return m_pfnItemPickup(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(Damage, int, int, int, float[3])
 {
-	BEGIN_READ(pbuf, iSize);
-	int armor = READ_BYTE();
-	int damageTaken = READ_BYTE();
-	int tiles = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int armor = msg.readByte();
+	int damageTaken = msg.readByte();
+	int tiles = msg.readLong();
 	if (armor + damageTaken + tiles == 0)
 		return m_pfnDamage(pszName, iSize, pbuf);
 	vec3_t vecFrom{};
 	for (size_t i = 0; i < 3; i++) {
-		vecFrom[i] = READ_COORD();
+		vecFrom[i] = msg.readCoord();
 	}
 	g_EventDamage(armor, damageTaken, tiles, vecFrom);
 	return m_pfnDamage(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(Battery, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int battery = READ_SHORT();
+	NetworkMessageReader msg(pbuf, iSize);
+	int battery = msg.readShort();
 	g_EventBattery(battery);
 	return m_pfnBattery(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(Health, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int health = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int health = msg.readLong();
 	g_EventHealth(health);
 	return m_pfnHealth(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(ScoreInfo, int, float, int, float, float, int, int, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int clientIndex = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int clientIndex = msg.readByte();
 	//wtf is not this shit
 	if (clientIndex >= 1 && clientIndex <= 33) {
-		float flFrags = READ_FLOAT();
-		int iDeath = READ_LONG();
-		float flHealth = READ_FLOAT();
-		float flArmor = READ_FLOAT();
-		int iTeamNumber = READ_BYTE();
-		int iHideExtra = READ_BYTE();
-		int iAdmin = READ_BYTE();
+		float flFrags = msg.readFloat();
+		int iDeath = msg.readLong();
+		float flHealth = msg.readFloat();
+		float flArmor = msg.readFloat();
+		int iTeamNumber = msg.readByte();
+		int iHideExtra = msg.readByte();
+		int iAdmin = msg.readByte();
 		g_EventScoreInfo(clientIndex, flFrags, iDeath, flHealth, flArmor, iTeamNumber, iHideExtra, iAdmin);
 	}
 	return m_pfnScoreInfo(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(Spectator, int, bool)
 {
-	BEGIN_READ(pbuf, iSize);
-	int clientIndex = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int clientIndex = msg.readByte();
 	if (clientIndex > 0 && clientIndex <= 32) {
-		int beSpectator = READ_BYTE();
+		int beSpectator = msg.readByte();
 		g_EventSpectator(clientIndex, beSpectator != 0);
 	}
 	return m_pfnSpectator(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(ServerName, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	const char* name = READ_STRING();
-	g_EventServerName(name);
+	NetworkMessageReader msg(pbuf, iSize);
+	auto name = msg.readString();
+	g_EventServerName(name.c_str());
 	return m_pfnServerName(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(NextMap, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	const char* map = READ_STRING();
-	g_EventNextMap(map);
+	NetworkMessageReader msg(pbuf, iSize);
+	auto map = msg.readString();
+	g_EventNextMap(map.c_str());
 	return m_pfnNextMap(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(TimeEnd, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int time = READ_LONG();
+	NetworkMessageReader msg(pbuf, iSize);
+	int time = msg.readLong();
 	g_EventTimeEnd(time);
 	return m_pfnTimeEnd(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(ShowMenu, int, int, int, const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	int slot = READ_SHORT();
-	int time = READ_CHAR();
-	int bits = READ_BYTE();
-	const char* message = READ_STRING();
-	g_EventShowMenu(slot, time, bits, message);
+	NetworkMessageReader msg(pbuf, iSize);
+	int slot = msg.readShort();
+	int time = msg.readChar();
+	int bits = msg.readByte();
+	auto message = msg.readString();
+	g_EventShowMenu(slot, time, bits, message.c_str());
 	//block hahahaha
 	return 1;
 }
@@ -206,12 +206,12 @@ DEFINE_NETMESSAGE_HOOK(VoteMenu, int, const char*, const char*, const char*)
 	if (!GetBaseViewPort()->IsVoteEnable())
 		return m_pfnVoteMenu(pszName, iSize, pbuf);
 
-	BEGIN_READ(pbuf, iSize);
-	int iVoteType = READ_BYTE();
-	const char* content = READ_STRING();
-	const char* yes = READ_STRING();
-	const char* no = READ_STRING();
-	g_EventVoteMenu(iVoteType, content, yes, no);
+	NetworkMessageReader msg(pbuf, iSize);
+	int iVoteType = msg.readByte();
+	auto content = msg.readString();
+	auto yes = msg.readString();
+	auto no = msg.readString();
+	g_EventVoteMenu(iVoteType, content.c_str(), yes.c_str(), no.c_str());
 	return 1;
 }
 DEFINE_NETMESSAGE_HOOK(EndVote)
@@ -221,24 +221,24 @@ DEFINE_NETMESSAGE_HOOK(EndVote)
 }
 DEFINE_NETMESSAGE_HOOK(MOTD, int ,const char*)
 {
-	BEGIN_READ(pbuf, iSize);
-	int code = READ_BYTE();
-	char* msg = READ_STRING();
-	g_EventMOTD(code, msg);
+	NetworkMessageReader msg(pbuf, iSize);
+	int code = msg.readByte();
+	auto info = msg.readString();
+	g_EventMOTD(code, info.c_str());
 	return m_pfnMOTD(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(FlashBat, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int flash = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int flash = msg.readByte();
 	g_EventFlashBat(flash);
 	return m_pfnFlashBat(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(Flashlight, bool, int)
 {
-	BEGIN_READ(pbuf, iSize);
-	int on = READ_BYTE();
-	int battery = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int on = msg.readByte();
+	int battery = msg.readByte();
 	g_EventFlashlight(on > 0, battery);
 	return m_pfnFlashlight(pszName, iSize, pbuf);
 }
@@ -246,17 +246,17 @@ eventpp::CallbackList<bool(int, const char*, const char*, const char*, const cha
 static pfnUserMsgHook m_pfnTextMsg; 
 static int __MsgFunc_TextMsg(const char* pszName, int iSize, void* pbuf)
 {
-	BEGIN_READ(pbuf, iSize);
-	int target = READ_BYTE();
-	std::string msg = READ_STRING();
-	std::string sstr1 = READ_STRING();
-	std::string sstr2 = READ_STRING();
-	std::string sstr3 = READ_STRING();
-	std::string sstr4 = READ_STRING();
+	NetworkMessageReader msg(pbuf, iSize);
+	int target = msg.readByte();
+	std::string info = msg.readString();
+	std::string sstr1 = msg.readString();
+	std::string sstr2 = msg.readString();
+	std::string sstr3 = msg.readString();
+	std::string sstr4 = msg.readString();
 	bool ret = true;
 	g_EventTextMsg.forEach([&](const eventpp::CallbackList<bool(int, const char*, const char*, const char*, const char*, const char*)>::Handle& handle, 
 		const eventpp::CallbackList<bool(int, const char*, const char*, const char*, const char*, const char*)>::Callback& callback) {
-			ret &= callback(target, msg.c_str(), sstr1.c_str(), sstr2.c_str(), sstr3.c_str(), sstr4.c_str());
+			ret &= callback(target, info.c_str(), sstr1.c_str(), sstr2.c_str(), sstr3.c_str(), sstr4.c_str());
 	});
 	return ret ? m_pfnTextMsg(pszName, iSize, pbuf) : 1;
 }
@@ -265,22 +265,22 @@ DEFINE_NETMESSAGE_HOOK(ClExtrasInfo)
 	//Why Encrypt it? is it aes?
 	//Funny Encrypt here, plain text length 33, sent length 105
 	//x3 Network traffic, lets fuck more server operator
-	/*BEGIN_READ(pbuf, iSize);
-	int plainDataLength = READ_LONG();
-	int ivLength = READ_LONG();
+	/*NetworkMessageReader msg(pbuf, iSize);
+	int plainDataLength = msg.readLong();
+	int ivLength = msg.readLong();
 	std::vector<byte> iv{};
 	for (int i = 0; i < ivLength; i++) {
-		iv.push_back(READ_BYTE());
+		iv.push_back(msg.readByte());
 	}
-	int encryptLength = READ_LONG();
+	int encryptLength = msg.readLong();
 	std::vector<byte> encrypt{};
 	for (int i = 0; i < encryptLength; i++) {
-		encrypt.push_back(READ_BYTE());
+		encrypt.push_back(msg.readByte());
 	}
-	int enctryptDigestLength = READ_LONG();
+	int enctryptDigestLength = msg.readLong();
 	std::vector<byte> digest{};
 	for (int i = 0; i < enctryptDigestLength; i++) {
-		digest.push_back(READ_BYTE());
+		digest.push_back(msg.readByte());
 	}*/
 	int result = m_pfnClExtrasInfo(pszName, iSize, pbuf);
 	g_EventClExtrasInfo();
@@ -288,39 +288,43 @@ DEFINE_NETMESSAGE_HOOK(ClExtrasInfo)
 }
 DEFINE_NETMESSAGE_HOOK(MapList, int, int, int, const char**)
 {
-	BEGIN_READ(pbuf, iSize);
-	int clearall = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int clearall = msg.readByte();
 	if (clearall == 0) {
-		int all_count = READ_SHORT();
+		int all_count = msg.readShort();
 		g_EventMapList(clearall, all_count, 0, nullptr);
 	}
 	else {
-		int start = READ_SHORT();
-		int end = READ_SHORT();
-		std::vector<const char*> maps{};
+		int start = msg.readShort();
+		int end = msg.readShort();
+		std::vector<std::string> maps{};
 		for (int i = start; i < end; i++) {
-			char* map = READ_STRING();
-			maps.push_back(map);
+			maps.push_back(msg.readString());
 		}
-		g_EventMapList(clearall, start, end, maps.data());
+		std::vector<const char*> cstrVec;
+		cstrVec.reserve(maps.size());
+		for (const auto& s : maps) {
+			cstrVec.push_back(s.c_str());
+		}
+		g_EventMapList(clearall, start, end, cstrVec.data());
 	}
 	return m_pfnMapList(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(MetaHook, int, mh_package_t*)
 {
-	BEGIN_READ(pbuf, iSize);
-	int type = READ_BYTE();
+	NetworkMessageReader msg(pbuf, iSize);
+	int type = msg.readByte();
 	switch (type) {
 		case MetaHookMsgType::MHSV_CMD_ABC_CUSTOM: {
-			ABCCustomMsg sstype = static_cast<ABCCustomMsg>(READ_BYTE());
+			ABCCustomMsg sstype = static_cast<ABCCustomMsg>(msg.readByte());
 			switch (sstype) {
 				case ABCCustomMsg::POPNUMBER: {
 					mh_package_t package{
 						sstype,
 						mh_package_t::popnum_t{
-							READ_COORD(), READ_COORD(), READ_COORD(),
-							READ_LONG(),
-							READ_BYTE(), READ_BYTE() , READ_BYTE() ,READ_BYTE()
+							msg.readCoord(), msg.readCoord(), msg.readCoord(),
+							msg.readLong(),
+							msg.readByte(), msg.readByte() , msg.readByte() ,msg.readByte()
 						}
 					};
 					g_EventMetaHook(type, &package);

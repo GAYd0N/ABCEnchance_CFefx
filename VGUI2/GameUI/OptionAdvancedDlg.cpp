@@ -2,8 +2,8 @@
 #include <filesystem>
 #include <atomic>
 
-#include "Task.h"
-#include "config.h"
+#include "core/library/Task.h"
+#include "core/module/config.h"
 
 #include "interface.h"
 #include "IFileSystem.h"
