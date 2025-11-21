@@ -312,6 +312,7 @@ void CViewport::Start(void){
 				};
 				this->AddPopNumber(package->popnum.origin, clr, package->popnum.value);
 			}
+			this->AddDmg(package->popnum.value);
 			break;
 		}
 		}
