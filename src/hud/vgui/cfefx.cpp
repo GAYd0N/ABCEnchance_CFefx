@@ -2,12 +2,12 @@
 #include "metahook.h"
 
 #include <vgui/IScheme2.h>
-#include "soundengine.h"
+#include "core/library/soundengine.h"
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/AnimationController.h"
 
-#include "local.h"
-#include "vguilocal.h"
+#include "utility/util.h"
+#include "utility/vgui_util.h"
 #include "hud/Viewport.h"
 #include "cfefx.h"
 

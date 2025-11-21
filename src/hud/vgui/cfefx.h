@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "soundengine.h"
+#include "core/library/soundengine.h"
 #include <vgui_controls/EditablePanel.h>
 #include "IViewportPanel.h"
 
