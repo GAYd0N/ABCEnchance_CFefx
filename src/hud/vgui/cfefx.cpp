@@ -50,7 +50,6 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	};
 
 	LoadControlSettings(VGUI2_ROOT_DIR "CfefxPanel.res");
-	vgui::GetAnimationControllerEx()->SetScriptFile(GetVPanel(), VGUI2_ROOT_DIR "hudanimations.txt");
 
 	m_vecScoreEffectPos = { (float)m_pScoreEffect->GetXPos(), (float)m_pScoreEffect->GetYPos(), 0 };
 	m_vecScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
@@ -85,7 +84,7 @@ inline void CCfefxPanel::StartFade(vgui::Panel* panel, bool state, float fadetim
 	if (!panel->IsVisible())
 		panel->SetVisible(true);
 	panel->SetAlpha(state ? 0 : 255);
-	vgui::GetAnimationControllerEx()->RunAnimationCommand(panel, "alpha", state ? 255 : 0, delaytime, fadetime, vgui::AnimationController::INTERPOLATOR_LINEAR);
+	vgui::GetAnimationController()->RunAnimationCommand(panel, "alpha", state ? 255 : 0, delaytime, fadetime, vgui::AnimationController::INTERPOLATOR_LINEAR);
 }
 //每次调用占用一个FreeChannel
 void CCfefxPanel::PlaySoundByFmod(const char* name, float volume) {
@@ -122,8 +121,8 @@ void CCfefxPanel::UpdateDmgMark(size_t index) {
 
 	ResetDmgMark(index);
 
-	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryStarAnims[index]);
-	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, m_aryMarkAnims[index]);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_aryStarAnims[index]);
+	vgui::GetAnimationController()->StartAnimationSequence(this, m_aryMarkAnims[index]);
 }
 
 void CCfefxPanel::UpdateScoreEffect() {
@@ -134,8 +133,8 @@ void CCfefxPanel::UpdateScoreEffect() {
 	(m_vecScoreMarkPos * 1.05).CopyToArray(pos);
 	(m_vecScoreEffectSize * 1.2).CopyToArray(size);
 
-	vgui::GetAnimationControllerEx()->RunAnimationCommandEx(m_pScoreEffect, "position", pos, 2, 0.2, 0.5, vgui::AnimationController::INTERPOLATOR_LINEAR);
-	vgui::GetAnimationControllerEx()->RunAnimationCommandEx(m_pScoreEffect, "size", size, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
+	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "position", pos, 2, 0.2, 0.5, vgui::AnimationController::INTERPOLATOR_LINEAR);
+	vgui::GetAnimationController()->RunAnimationCommandEx(m_pScoreEffect, "size", size, 2, 0.7, 0.2, vgui::AnimationController::INTERPOLATOR_LINEAR);
 	StartFade(m_pScoreEffect, false, 0.3, 0.9);
 
 	if (!m_pScoreMark->IsVisible())
@@ -143,7 +142,7 @@ void CCfefxPanel::UpdateScoreEffect() {
 
 	m_iScore = std::clamp<size_t>(m_iScore, 0, 9);
 	m_pScoreMark->SetImage(m_szScoreMarkImages[m_iScore]);
-	vgui::GetAnimationControllerEx()->StartAnimationSequence(this, "ScoreMarkAnim");
+	vgui::GetAnimationController()->StartAnimationSequence(this, "ScoreMarkAnim");
 }
 
 void CCfefxPanel::AddDmg(int iDmg)
@@ -250,11 +249,11 @@ void CCfefxPanel::ResetDmgMark(size_t index)
 
 	// 停止动画并还原状态
 	//vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_aryDmgMarks[index]);
-	vgui::GetAnimationControllerEx()->StopAnimationSequence(this, m_aryMarkAnims[index]);
+	vgui::GetAnimationController()->StopAnimationSequence(this, m_aryMarkAnims[index]);
 	m_aryDmgMarks[index]->SetAlpha(0);
 
 	//vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_aryDmgStars[index]);
-	vgui::GetAnimationControllerEx()->StopAnimationSequence(this, m_aryStarAnims[index]);
+	vgui::GetAnimationController()->StopAnimationSequence(this, m_aryStarAnims[index]);
 	m_aryDmgStars[index]->SetAlpha(0);
 	m_aryDmgStars[index]->SetPos(m_vecDmgStarsPos.x, m_vecDmgStarsPos.y);
 	m_aryDmgStars[index]->SetSize(m_vecDmgStarsSize.x, m_vecDmgStarsSize.y);
@@ -276,8 +275,8 @@ void CCfefxPanel::ResetScoreEffect()
 		m_pScoreEffect->SetAlpha(0);
 		m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
 
-		vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_pScoreEffect);
-		vgui::GetAnimationControllerEx()->CancelAnimationsForPanel(m_pScoreMark);
+		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreEffect);
+		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreMark);
 
 	}
 }

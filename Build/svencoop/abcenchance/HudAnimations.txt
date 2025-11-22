@@ -105,3 +105,179 @@ event WeaponChooseIn
 	Animate	"WeaponChoosePanel"	Alpha	0 Linear 0.0 0.0
 	Animate	"WeaponChoosePanel"	Alpha	255 Linear 0.0 0.13
 }
+event StarOneAnim
+{
+    Animate StarOne Alpha "0" Linear 0 0
+    Animate StarOne Position "417 230" Linear 0 0
+    Animate StarOne Size "20 20" Linear 0 0
+    
+	Animate StarOne Alpha "200" Linear 0 0.05
+	Animate StarOne Position "650 142" Linear 0 0.1
+    Animate StarOne Size "40 40" Linear 0 0.1
+    Animate StarOne Alpha "0" Linear 0.2 0.1
+    Animate StarOne Position "810 142" Linear 0.2 0.1
+    Animate StarOne Size "20 20" Linear 0.2 0.1
+}
+event StarTwoAnim
+{
+    Animate StarTwo Alpha "0" Linear 0 0
+    Animate StarTwo Position "417 230" Linear 0 0
+    Animate StarTwo Size "20 20" Linear 0 0
+
+	Animate StarTwo Alpha "200" Linear 0 0.05
+	Animate StarTwo Position "650 166" Linear 0 0.1
+    Animate StarTwo Size "40 40" Linear 0 0.1
+    Animate StarTwo Alpha "0" Linear 0.2 0.1
+    Animate StarTwo Position "810 166" Linear 0.2 0.1
+    Animate StarTwo Size "20 20" Linear 0.2 0.1
+}
+event StarThreeAnim
+{
+    Animate StarThree Alpha "0" Linear 0 0
+    Animate StarThree Position "417 230" Linear 0 0
+    Animate StarThree Size "20 20" Linear 0 0
+
+	Animate StarThree Alpha "200" Linear 0 0.05
+	Animate StarThree Position "650 190" Linear 0 0.1
+    Animate StarThree Size "40 40" Linear 0 0.1
+    Animate StarThree Alpha "0" Linear 0.2 0.1
+    Animate StarThree Position "810 190" Linear  0.2 0.1
+    Animate StarThree Size "20 20" Linear 0.2 0.1
+}
+event StarFourAnim
+{
+    Animate StarFour Alpha "0" Linear 0 0
+    Animate StarFour Position "417 230" Linear 0 0
+    Animate StarFour Size "20 20" Linear 0 0
+
+	Animate StarFour Alpha "200" Linear 0 0.05
+	Animate StarFour Position "650 214" Linear 0 0.1
+    Animate StarFour Size "40 40" Linear 0 0.1
+    Animate StarFour Alpha "0" Linear 0.2 0.1
+    Animate StarFour Position "810 214" Linear 0.2 0.1
+    Animate StarFour Size "20 20" Linear 0.2 0.1
+}
+event StarFiveAnim
+{
+    Animate StarFive Alpha "0" Linear 0 0
+    Animate StarFive Position "417 230" Linear 0 0
+    Animate StarFive Size "20 20" Linear 0 0
+
+    Animate StarFive Alpha "200" Linear 0 0.05
+    Animate StarFive Position "650 118" Linear 0 0.1
+    Animate StarFive Size "40 40" Linear 0 0.1
+    Animate StarFive Alpha "0" Linear 0.2 0.1
+    Animate StarFive Position "810 118" Linear 0.2 0.1
+    Animate StarFive Size "20 20" Linear 0.2 0.1
+}
+event StarSixAnim
+{
+    Animate StarSix Alpha "0" Linear 0 0
+    Animate StarSix Position "417 230" Linear 0 0
+    Animate StarSix Size "20 20" Linear 0 0
+    
+	Animate StarSix Alpha "200" Linear 0 0.05
+	Animate StarSix Position "650 142" Linear 0 0.1
+    Animate StarSix Size "40 40" Linear 0 0.1
+    Animate StarSix Alpha "0" Linear 0.2 0.1
+    Animate StarSix Position "810 142" Linear 0.2 0.1
+    Animate StarSix Size "20 20" Linear 0.2 0.1
+}
+event StarSevenAnim
+{
+    Animate StarSeven Alpha "0" Linear 0 0
+    Animate StarSeven Position "417 230" Linear 0 0
+    Animate StarSeven Size "20 20" Linear 0 0
+
+	Animate StarSeven Alpha "200" Linear 0 0.05
+	Animate StarSeven Position "650 166" Linear 0 0.1
+    Animate StarSeven Size "40 40" Linear 0 0.1
+    Animate StarSeven Alpha "0" Linear 0.2 0.1
+    Animate StarSeven Position "810 166" Linear 0.2 0.1
+    Animate StarSeven Size "20 20" Linear 0.2 0.1
+}
+event StarEightAnim
+{
+    Animate StarEight Alpha "0" Linear 0 0
+    Animate StarEight Position "417 230" Linear 0 0
+    Animate StarEight Size "20 20" Linear 0 0
+
+	Animate StarEight Alpha "200" Linear 0 0.05
+	Animate StarEight Position "650 190" Linear 0 0.1
+    Animate StarEight Size "40 40" Linear 0 0.1
+    Animate StarEight Alpha "0" Linear 0.2 0.1
+    Animate StarEight Position "810 190" Linear  0.2 0.1
+    Animate StarEight Size "20 20" Linear 0.2 0.1
+}
+event StarNineAnim
+{
+    Animate StarNine Alpha "0" Linear 0 0
+    Animate StarNine Position "417 230" Linear 0 0
+    Animate StarNine Size "20 20" Linear 0 0
+
+	Animate StarNine Alpha "200" Linear 0 0.05
+	Animate StarNine Position "650 214" Linear 0 0.1
+    Animate StarNine Size "40 40" Linear 0 0.1
+    Animate StarNine Alpha "0" Linear 0.2 0.1
+    Animate StarNine Position "810 214" Linear 0.2 0.1
+    Animate StarNine Size "20 20" Linear 0.2 0.1
+}
+
+event DmgMarkOneFade
+{
+    Animate DmgMarkOne Alpha "0" Linear 0 0
+    Animate DmgMarkOne Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkTwoFade
+{
+    Animate DmgMarkTwo Alpha "0" Linear 0 0
+    Animate DmgMarkTwo Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkThreeFade
+{
+    Animate DmgMarkThree Alpha "0" Linear 0 0
+    Animate DmgMarkThree Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkFourFade
+{
+    Animate DmgMarkFour Alpha "0" Linear 0 0
+    Animate DmgMarkFour Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkFiveFade
+{
+    Animate DmgMarkFive Alpha "0" Linear 0 0
+    Animate DmgMarkFive Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkSixFade
+{
+    Animate DmgMarkSix Alpha "0" Linear 0 0
+    Animate DmgMarkSix Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkSevenFade
+{
+    Animate DmgMarkSeven Alpha "0" Linear 0 0
+    Animate DmgMarkSeven Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkEightFade
+{
+    Animate DmgMarkEight Alpha "0" Linear 0 0
+    Animate DmgMarkEight Alpha "255" Linear 0.2 0.3
+}
+event DmgMarkNineFade
+{
+    Animate DmgMarkNine Alpha "0" Linear 0 0
+    Animate DmgMarkNine Alpha "255" Linear 0.2 0.3
+}
+
+event ScoreMarkAnim
+{
+    Animate ScoreMark Position "415 370" Linear 0 0
+    Animate ScoreMark Size "24 20" Linear 0 0
+    Animate ScoreMark Alpha "255" Linear 0 0
+
+    Animate ScoreMark Position "355 320" Linear 0 0.04
+    Animate ScoreMark Size "144 120" Linear 0 0.04
+    Animate ScoreMark Position "379 340" Linear 0.04 0.02
+    Animate ScoreMark Size "96 80" Linear 0.04 0.02
+    Animate ScoreMark Alpha "0" Linear 1.3 0.5
+}

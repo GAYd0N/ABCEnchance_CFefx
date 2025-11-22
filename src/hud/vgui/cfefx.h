@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
-#include "core/library/soundengine.h"
-#include <vgui_controls/EditablePanel.h>
+#include "vgui_controls/EditablePanel.h"
 #include "IViewportPanel.h"
+#include "core/library/soundengine.h"
 
 #pragma region Class CfefxPanel
 

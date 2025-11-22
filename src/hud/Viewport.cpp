@@ -452,8 +452,6 @@ void CViewport::AddNewPanel(IViewportPanel* panel){
 
 void CViewport::Think(void){
 	vgui::GetAnimationController()->UpdateAnimations(gEngfuncs.GetClientTime());
-	vgui::GetAnimationControllerEx()->UpdateAnimations(gEngfuncs.GetClientTime());
-
 #ifdef __HAS_NETEASE_API
 	m_pNeteaseMusic->Think();
 #endif
