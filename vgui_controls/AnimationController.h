@@ -15,7 +15,6 @@
 
 #include "tier1/utlsymbol.h"
 #include "tier1/utlvector.h"
-#include <memory>
 
 namespace vgui
 {
@@ -273,7 +272,6 @@ namespace vgui
 
 	// singleton accessor for use only by other vgui_controls
 	extern AnimationController* GetAnimationController();
-	extern AnimationController* GetAnimationControllerEx();
 } // namespace vgui
 
 #endif // ANIMATIONCONTROLLER_H
