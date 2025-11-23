@@ -94,7 +94,6 @@
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>$(GLEWCheckRequirements)
-$(CapstoneCheckRequirements)
 $(FreeImageCheckRequirements)
 $(RapidJsonCheckRequirements)</Command>
     </PreBuildEvent>
@@ -131,7 +130,6 @@ copy "$(OutDir)$(TargetName)$(TargetExt)" "$(OutDir)..\Build\"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>$(GLEWCheckRequirements)
-$(CapstoneCheckRequirements)
 $(FreeImageCheckRequirements)
 $(RapidJsonCheckRequirements)</Command>
     </PreBuildEvent>
@@ -169,7 +167,6 @@ copy "$(OutDir)$(TargetName)$(TargetExt)" "$(OutDir)..\Build\$(TargetName)_AVX2$
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>$(GLEWCheckRequirements)
-$(CapstoneCheckRequirements)
 $(FreeImageCheckRequirements)
 $(RapidJsonCheckRequirements)</Command>
     </PreBuildEvent>
