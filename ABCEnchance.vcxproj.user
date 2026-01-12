@@ -5,5 +5,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommandArgumentsHistory>-game svencoop|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>$(MetaHookLaunchCommnand)</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

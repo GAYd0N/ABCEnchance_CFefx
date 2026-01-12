@@ -272,6 +272,7 @@ namespace vgui
 
 	// singleton accessor for use only by other vgui_controls
 	extern AnimationController* GetAnimationController();
+
 } // namespace vgui
 
 #endif // ANIMATIONCONTROLLER_H

@@ -50,6 +50,7 @@ CCfefxPanel::CCfefxPanel() : BaseClass(nullptr, VIEWPORT_CFEFXPANEL_NAME) {
 	};
 
 	LoadControlSettings(VGUI2_ROOT_DIR "CfefxPanel.res");
+	vgui::GetAnimationController()->SetScriptFile(GetVPanel(), VGUI2_ROOT_DIR "hudanimations.txt");
 
 	m_vecScoreEffectPos = { (float)m_pScoreEffect->GetXPos(), (float)m_pScoreEffect->GetYPos(), 0 };
 	m_vecScoreEffectSize = { (float)m_pScoreEffect->GetWide(), (float)m_pScoreEffect->GetTall(), 0 };
@@ -137,6 +138,8 @@ void CCfefxPanel::UpdateScoreEffect() {
 
 void CCfefxPanel::AddDmg(int iDmg)
 {
+	if (gCVars.pCfefxEnable->value <= 0)
+		return;
 	if (iDmg > 0)
 		m_iDmg += iDmg;
 	UpdateAnimations();
@@ -179,7 +182,7 @@ void CCfefxPanel::UpdateAnimations()
 			ResetDmgMark(i);
 
 		float CurrentTime = gEngfuncs.GetClientTime();
-		bool TimeToReset = CurrentTime - m_flLastTime > pCfefxKillTime->value && m_iScore != 0;
+		bool TimeToReset = ((CurrentTime - m_flLastTime) > (pCfefxKillTime->value)) && (m_iScore != 0);
 
 		if (TimeToReset) {
 			m_iScore = 0;
