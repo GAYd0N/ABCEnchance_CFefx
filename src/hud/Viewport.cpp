@@ -104,6 +104,9 @@ void CViewport::Start(void){
 #pragma region MyRegion
 	g_EventPlayerInfoChanged.append([&](PlayerInfo* info) {
 		this->m_pScorePanel->UpdateOnPlayerInfo(info->m_iIndex);
+		if (this->m_pRadar) {
+			this->m_pRadar->RefreshAvatars();
+		}
 		});
 	g_EventAmmoX.append([&](int, int) {
 		this->m_pAmmoPanel->RefreshAmmo();
@@ -182,7 +185,7 @@ void CViewport::Start(void){
 		this->m_iTimeEnd = time;
 		this->m_pScorePanel->UpdateTimeEnd();
 		});
-	g_EventShowMenu.append([&](int slot, int time, int bits, const char* message) {
+	g_EventShowMenu.append([&](int slot, int time, int bits, std::string message) {
 		this->m_pTextMenu->MsgShowMenu(slot, time, bits, message);
 		});
 	g_EventVoteMenu.append([&](int type, const char* content, const char* yes, const char* no) {
@@ -316,8 +319,12 @@ void CViewport::Start(void){
 		}
 		}
 		});
-	g_EventCmdSlot.append([&](int) {
-		return this->IsTextMenuOpen();
+	g_EventCmdSlot.append([&](int slot) {
+		if (this->IsTextMenuOpen()) {
+			this->SelectMenuItem(slot + 1);
+			return false;
+		}
+		return true;
 		});
 	g_EventCmdMissionBrief.append([&]() {
 		this->ShowMOTD();

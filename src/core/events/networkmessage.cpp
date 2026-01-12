@@ -26,7 +26,12 @@ DEFINE_NETMESSAGE_HOOK(WeaponList, Weapon*)
 	NetworkMessageReader msg(pbuf, iSize);
 	Weapon recived_weapon{};
 	//read data
-	Q_strcpy(recived_weapon.szName, msg.readString().c_str());
+	auto weaponName = msg.readString();
+	if (weaponName.length() >= MAX_WEAPON_NAME) {
+		return m_pfnWeaponList(pszName, iSize, pbuf);
+	}
+	
+	Q_strcpy(recived_weapon.szName, weaponName.c_str());
 	Q_strcpy(recived_weapon.szSprName, recived_weapon.szName);
 	recived_weapon.iAmmoType = msg.readChar();
 	recived_weapon.iMax1 = msg.readLong();
@@ -40,7 +45,8 @@ DEFINE_NETMESSAGE_HOOK(WeaponList, Weapon*)
 	recived_weapon.iSlotPos = msg.readChar();
 	recived_weapon.iId = msg.readShort();
 	recived_weapon.iFlags = msg.readByte();
-	g_EventWeaponList(&recived_weapon);
+	if (recived_weapon.iId > 0 && recived_weapon.iSlot < MAX_WEAPON_SLOT)
+		g_EventWeaponList(&recived_weapon);
 	return m_pfnWeaponList(pszName, iSize, pbuf);
 }
 DEFINE_NETMESSAGE_HOOK(InitHUD)
@@ -190,14 +196,14 @@ DEFINE_NETMESSAGE_HOOK(TimeEnd, int)
 	g_EventTimeEnd(time);
 	return m_pfnTimeEnd(pszName, iSize, pbuf);
 }
-DEFINE_NETMESSAGE_HOOK(ShowMenu, int, int, int, const char*)
+DEFINE_NETMESSAGE_HOOK(ShowMenu, int, int, int, std::string&)
 {
 	NetworkMessageReader msg(pbuf, iSize);
 	int slot = msg.readShort();
 	int time = msg.readChar();
 	int bits = msg.readByte();
 	auto message = msg.readString();
-	g_EventShowMenu(slot, time, bits, message.c_str());
+	g_EventShowMenu(slot, time, bits, message);
 	//block hahahaha
 	return 1;
 }

@@ -21,9 +21,8 @@
 #include "hud/Viewport.h"
 #include "radar.h"
 
-
-
 #undef clamp
+#undef max
 
 class CRadarMapImage : public vgui::IImage_HL25
 {
@@ -42,8 +41,12 @@ public:
 	{
 		if (MetaRenderer())
 		{
-			vec4_t vColor4f = { m_DrawColor.r() / 255.0f, m_DrawColor.g() / 255.0f ,m_DrawColor.b() / 255.0f ,m_DrawColor.a() / 255.0f };
-
+			vec4_t vColor4f = { 
+				(m_DrawColor.r() / 255.0f) * m_flBrightness, 
+				(m_DrawColor.g() / 255.0f) * m_flBrightness, 
+				(m_DrawColor.b() / 255.0f) * m_flBrightness, 
+				m_DrawColor.a() / 255.0f 
+			};
 			MetaRenderer()->DrawTexturedQuadMask(
 				m_BaseTexture,
 				m_MaskTexture,
@@ -53,7 +56,8 @@ public:
 				m_iY + 0,
 				vColor4f,
 				DRAW_TEXTURED_RECT_ALPHA_BLEND_ENABLED | DRAW_TEXTURED_RECT_MASK_TEXTURE_ENABLED,
-				"CRadarMapImage::Paint");
+				"CRadarMapImage::Paint"
+			);
 		}
 	}
 
@@ -88,6 +92,10 @@ public:
 		m_MaskTexture = tex;
 	}
 
+	void SetBrightness(float brightness) {
+		m_flBrightness = std::max(0.0f, brightness);
+	}
+
 private:
 	int m_iX = 0, m_iY = 0;
 	int m_iWide = 0, m_iTall = 0;
@@ -96,6 +104,7 @@ private:
 	uint m_MaskTexture{};
 
 	Color m_DrawColor = Color(255, 255, 255, 255);
+	float m_flBrightness = 1.0f;
 };
 
 constexpr auto VIEWPORT_RADAR_NAME = "RadarPanel";
@@ -124,43 +133,40 @@ CRadarPanel::CRadarPanel()
 
 	gCVars.pRadar = CREATE_CVAR("hud_radar", "1", FCVAR_VALUE, [](cvar_t* cvar) {
 		GetBaseViewPort()->GetRadarPanel()->ShowPanel(cvar->value);
-		});
-
-	gCVars.pRadarZMin = CREATE_CVAR("hud_radar_zmin", "256", FCVAR_VALUE, nullptr);
-	gCVars.pRadarZMax = CREATE_CVAR("hud_radar_zmax", "20", FCVAR_VALUE, nullptr);
+	});
 	gCVars.pRadarZoom = CREATE_CVAR("hud_radar_zoom", "2.5", FCVAR_VALUE, nullptr);
 
 	gCVars.pRadarAvatar = CREATE_CVAR("hud_radar_avatar", "1", FCVAR_VALUE, [](cvar_t* cvar) {
 		GetBaseViewPort()->GetRadarPanel()->SetAvatarVisible(cvar->value);
 		});
 	gCVars.pRadarAvatarSize = CREATE_CVAR("hud_radar_avatarsize", "20", FCVAR_VALUE, nullptr);
-	gCVars.pRadarAvatarScale = CREATE_CVAR("hud_radar_avatarscale", "0.2", FCVAR_VALUE, nullptr);
 
 	m_pBackground = new vgui::ImagePanel(this, "Background");
 	m_pRoundBackground = new vgui::ImagePanel(this, "RoundBackground");
 	m_pMapground = new vgui::ImagePanel(this, "Mapground");
-	m_pUpground = new vgui::ImagePanel(this, "Upground");
 	m_pNorthground = new vgui::ImagePanel(this, "Northground");
 	m_pViewangleground = new vgui::ImagePanel(this, "Viewangleground");
 	for (size_t i = 0; i < 32; i++) {
 		m_aryPlayerAvatars[i] = new vgui::CAvatarImagePanel(this, "Avatar");
-		m_aryPlayerAvatars[i]->SetVisible(true);
+		m_aryPlayerAvatars[i]->SetVisible(false);
 		m_aryPlayerAvatars[i]->SetShouldScaleImage(true);
 	}
 	LoadControlSettings(VGUI2_ROOT_DIR "RadarPanel.res");
 
-	m_iRadarRoundBackgroundTextureId = vgui::surface()->CreateNewTextureID();
-	vgui::surface()->DrawSetTextureFile(m_iRadarRoundBackgroundTextureId, "abcenchance/tga/radar_background", true, false);
+	m_iRadarMaskId = vgui::surface()->CreateNewTextureID();
+	vgui::surface()->DrawSetTextureFile(m_iRadarMaskId, "abcenchance/tga/radar_mask", true, false);
+	m_iRadarRoundMaskId = vgui::surface()->CreateNewTextureID();
+	vgui::surface()->DrawSetTextureFile(m_iRadarRoundMaskId, "abcenchance/tga/radar_roundmask", true, false);
 
 	m_pRadarImage = new CRadarMapImage();
 	m_pRadarImage->SetBaseTexture(m_RadarFBO.s_hBackBufferTex);
-	m_pRadarImage->SetMaskTexture(m_iRadarRoundBackgroundTextureId);
-
-	int w{}, h{};
-	m_pMapground->GetSize(w, h);
-	m_pRadarImage->SetSize(w, h);
-
+	m_pRadarImage->SetBrightness(m_flBrightness);
 	m_pMapground->SetImage(m_pRadarImage);
+	
+	m_vClearColor[0] = 0.0f;
+	m_vClearColor[1] = 0.0f;
+	m_vClearColor[2] = 0.0f;
+	m_vClearColor[3] = 1.0f;
 }
 
 CRadarPanel::~CRadarPanel() {
@@ -171,10 +177,16 @@ CRadarPanel::~CRadarPanel() {
 		m_pRadarImage = nullptr;
 	}
 
-	if (m_iRadarRoundBackgroundTextureId)
+	if (m_iRadarMaskId)
 	{
-		vgui::surface()->DeleteTextureByID(m_iRadarRoundBackgroundTextureId);
-		m_iRadarRoundBackgroundTextureId = 0;
+		vgui::surface()->DeleteTextureByID(m_iRadarMaskId);
+		m_iRadarMaskId = 0;
+	}
+
+	if (m_iRadarRoundMaskId)
+	{
+		vgui::surface()->DeleteTextureByID(m_iRadarRoundMaskId);
+		m_iRadarRoundMaskId = 0;
 	}
 
 	if (MetaRenderer() && m_RadarFBO.s_hBackBufferFBO)
@@ -190,11 +202,10 @@ void CRadarPanel::PerformLayout()
 	GetSize(w, h);
 	m_pBackground->SetSize(w, h);
 	m_pRoundBackground->SetSize(w, h);
-	m_pMapground->SetSize(w - 4, h - 4);
-	m_pUpground->SetSize(w, h);
-	int vw, vh;
-	m_pViewangleground->GetSize(vw, vh);
-	m_pViewangleground->SetPos((w - vw) / 2, (h - vh) / 2);
+	int gw = w * 0.01f;
+	int gh = h * 0.01f;
+	m_pMapground->SetSize(w - gw, h - gh);
+	m_pMapground->SetPos(gw / 2, gh / 2);
 }
 
 void CRadarPanel::Paint()
@@ -217,6 +228,7 @@ void CRadarPanel::Paint()
 
 		int size = GetWide();
 
+		// Position north indicator
 		int nw, nh;
 		m_pNorthground->GetSize(nw, nh);
 		int len = GetWide() - nw;
@@ -226,51 +238,102 @@ void CRadarPanel::Paint()
 		int sty = std::clamp(((size / 2.0f) + hh * sin(rotate)), 0.0f, (float)len);
 		m_pNorthground->SetPos(stx, sty);
 
-		if (gCVars.pRadarAvatar->value > 0) {
-			float size = GetWide();
-			float Length = size / 2;
-			float ww = gCVars.pRadarAvatarSize->value;
-			float w = ww / 2;
-			for (size_t i = 0; i < 32; i++) {
-				auto iter = m_aryPlayerAvatars[i];
-				PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i + 1);
-				if (!pi->IsValid()) {
-					iter->SetVisible(false);
-					continue;
-				}
-				PlayerInfo* lpi = gPlayerRes.GetLocalPlayerInfo();
-				if (pi->m_iTeamNumber != lpi->m_iTeamNumber) {
-					iter->SetVisible(false);
-					continue;
-				}
-				//Avatar
-				cl_entity_t* entity = gEngfuncs.GetEntityByIndex(i + 1);
-				if (!entity || entity->curstate.messagenum != local->curstate.messagenum || !entity->player || !entity->model || local == entity) {
-					iter->SetVisible(false);
-					continue;
-				}
-				iter->SetVisible(true);
-
-				Vector vecLength = entity->curstate.origin;
-				vecLength -= local->curstate.origin;
-				Vector vecAngle;
-				CMathlib::VectorAngles(vecLength, vecAngle);
-				float nyaw = CMathlib::Q_DEG2RAD(vecAngle[CMathlib::Q_YAW] - local->curstate.angles[CMathlib::Q_YAW] + 90);
-
-				std::swap(vecLength.x, vecLength.y);
-				vecLength *= (-1.0f * gCVars.pRadarAvatarScale->value);
-				vecLength.z = 0;
-				float vlen = vecLength.Length();
-				int ale = GetWide() - ww;
-				int ahh = gCVars.pRadar->value > 1 ? vlen / 2 : sqrt(2 * pow(vlen, 2)) / 2;
-				int atx = std::clamp((Length - w + ahh * cos(nyaw)), 0.0f, static_cast<float>(ale));
-				int aty = std::clamp((Length - w + ahh * sin(nyaw)), 0.0f, static_cast<float>(ale));
-				aty = ale - aty;
-				iter->SetPos(atx, aty);
-				iter->SetSize(ww, ww);
+		// Handle avatar display
+		for (size_t i = 0; i < 32; i++) {
+			auto iter = m_aryPlayerAvatars[i];
+			if (gCVars.pRadarAvatar->value <= 0) {
+				iter->SetVisible(false);
+				continue;
 			}
+			
+			PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i + 1);
+			if (!pi->IsValid()) {
+				iter->SetVisible(false);
+				continue;
+			}
+			PlayerInfo* lpi = gPlayerRes.GetLocalPlayerInfo();
+			if (pi->m_iTeamNumber != lpi->m_iTeamNumber) {
+				iter->SetVisible(false);
+				continue;
+			}
+			
+			cl_entity_t* entity = gEngfuncs.GetEntityByIndex(i + 1);
+			if (!entity || entity->curstate.messagenum != local->curstate.messagenum || !entity->player || !entity->model || local == entity) {
+				iter->SetVisible(false);
+				continue;
+			}
+			iter->SetPlayer(i + 1, vgui::k_EAvatarSize32x32);
+			iter->SetVisible(true);
+
+			// Calculate position on radar
+			float radarSize = GetWide();
+			float radarCenter = radarSize / 2.0f;
+			float avatarSize = gCVars.pRadarAvatarSize->value;
+			float avatarHalf = avatarSize / 2.0f;
+			
+			// Get relative position vector
+			Vector relativePos = entity->curstate.origin;
+			relativePos -= local->curstate.origin;
+			
+			// Apply radar scale - this should match the radar rendering scale
+			float zoom = gCVars.pRadarZoom->value;
+			float worldSize = 4096.0f / zoom;
+			float radarScale = radarSize / (2.0f * worldSize);
+			
+			// Convert world coordinates to radar coordinates
+			// In Half-Life: X is forward/back, Y is left/right, Z is up/down
+			// For radar: X should be left/right, Y should be forward/back (top-down view)
+			// We invert radarY to fix north/south direction
+			float radarX = -relativePos.y;   // World Y (left/right) becomes radar X
+			float radarY = relativePos.x;  // World X (forward/back) becomes radar Y (inverted for correct north/south)
+			
+			// Rotate based on local player's yaw angle
+			// We need to rotate the relative position so that "forward" is always up on the radar
+			float localYaw = CMathlib::Q_DEG2RAD(-local->curstate.angles[CMathlib::Q_YAW]);
+			float cosYaw = cos(localYaw);
+			float sinYaw = sin(localYaw);
+			
+			// Apply rotation matrix to align with player's view direction
+			float rotatedX = radarX * cosYaw - radarY * sinYaw;
+			float rotatedY = radarX * sinYaw + radarY * cosYaw;
+			
+			// Apply radar scale to match the radar rendering scale
+			float scaledX = rotatedX * radarScale;
+			float scaledY = rotatedY * radarScale;
+			
+			// Convert to screen coordinates (center of radar + offset)
+			// Note: Screen Y axis points down, so we invert rotatedY
+			float screenX = radarCenter + scaledX - avatarHalf;
+			float screenY = radarCenter - scaledY - avatarHalf;
+			
+			// Clamp to radar bounds
+			float maxPos = radarSize - avatarSize;
+			screenX = std::clamp(screenX, 0.0f, maxPos);
+			screenY = std::clamp(screenY, 0.0f, maxPos);
+			
+			// Handle circular radar clipping
+			if (gCVars.pRadar->value > 1) {
+				float dx = screenX + avatarHalf - radarCenter;
+				float dy = screenY + avatarHalf - radarCenter;
+				float distance = sqrt(dx * dx + dy * dy);
+				float maxRadius = radarCenter - avatarHalf;
+				
+				if (distance > maxRadius) {
+					// Scale position to fit within circle
+					float ratio = maxRadius / distance;
+					screenX = radarCenter + dx * ratio - avatarHalf;
+					screenY = radarCenter + dy * ratio - avatarHalf;
+				}
+			}
+			
+			iter->SetPos(static_cast<int>(screenX), static_cast<int>(screenY));
+			iter->SetSize(avatarSize, avatarSize);
 		}
 	}
+	if(gCVars.pRadar->value > 1)
+		m_pRadarImage->SetMaskTexture(m_iRadarRoundMaskId);
+	else
+		m_pRadarImage->SetMaskTexture(m_iRadarMaskId);
 	BaseClass::Paint();
 }
 
@@ -278,19 +341,28 @@ void CRadarPanel::ApplySettings(KeyValues* inResourceData)
 {
 	BaseClass::ApplySettings(inResourceData);
 	GetSize(m_iStartWidth, m_iStartTall);
-
-	m_flRoundRadius = vgui::scheme()->GetProportionalScaledValue(inResourceData->GetFloat("radar_roundradius", 100.0f));
 	m_iScaledWidth = vgui::scheme()->GetProportionalScaledValue(inResourceData->GetInt("scaled_wide", 300));
 	m_iScaledTall = vgui::scheme()->GetProportionalScaledValue(inResourceData->GetInt("scaled_tall", 300));
+	m_flBrightness = inResourceData->GetFloat("radar_brightness", 1.0f);
+	if (m_pRadarImage) {
+		m_pRadarImage->SetBrightness(m_flBrightness);
+	}
 }
 
 void CRadarPanel::ApplySchemeSettings(vgui::IScheme* pScheme)
 {
 	BaseClass::ApplySchemeSettings(pScheme);
-	m_cOutline = GetSchemeColor("Radar.OutlineColor", GetSchemeColor("Panel.FgColor", pScheme), pScheme);
-	m_cMap = GetSchemeColor("Radar.MapColor", GetSchemeColor("Panel.BgColor", pScheme), pScheme);
+	auto color = GetSchemeColor("Radar.MapColor", GetSchemeColor("Panel.BgColor", pScheme), pScheme);
+	m_pRadarImage->SetColor(color);
+	m_pRadarImage->SetBrightness(m_flBrightness);
 	SetFgColor(GetSchemeColor("Radar.FgColor", GetSchemeColor("Panel.FgColor", pScheme), pScheme));
 	SetBgColor(GetSchemeColor("Radar.BgColor", GetSchemeColor("Panel.BgColor", pScheme), pScheme));
+	
+	auto clearColor = GetSchemeColor("Radar.ClearColor", Color(0, 0, 0, 255), pScheme);
+	m_vClearColor[0] = clearColor.r() / 255.0f;
+	m_vClearColor[1] = clearColor.g() / 255.0f;
+	m_vClearColor[2] = clearColor.b() / 255.0f;
+	m_vClearColor[3] = clearColor.a() / 255.0f;
 }
 
 const char* CRadarPanel::GetName()
@@ -301,13 +373,6 @@ const char* CRadarPanel::GetName()
 void CRadarPanel::Reset()
 {
 	SetScale(false);
-	cvar_t* pCvarDevC = CVAR_GET_POINTER("dev_overview_color");
-	if (pCvarDevC && MetaRenderer()) {
-		sscanf_s(pCvarDevC->string, "%d %d %d", &iOverviewR, &iOverviewG, &iOverviewB);
-		iOverviewR /= 255;
-		iOverviewG /= 255;
-		iOverviewB /= 255;
-	}
 }
 
 void CRadarPanel::ShowPanel(bool state)
@@ -348,32 +413,26 @@ void CRadarPanel::RenderRadar()
 		m_vecOverViewOrigin[2] += 72;
 
 		VectorCopy(local->curstate.angles, m_vecOverViewAngles);
-		m_vecOverViewAngles[0] = 90;
-		m_vecOverViewAngles[2] = 0;
+		m_vecOverViewAngles[0] = 90;  // Look straight down
+		m_vecOverViewAngles[2] = 0;   // No roll
 
 		float arySaveCvars[] = {
 			gCVars.pCVarDrawEntities->value,
 			gCVars.pCVarDrawViewModel->value,
 			gCVars.pCVarDrawDynamic->value,
-			gCVars.pCVarFXAA ? gCVars.pCVarFXAA->value : 0.0f,
 			gCVars.pCVarWater ? gCVars.pCVarWater->value : 0.0f,
 			gCVars.pCVarShadow ? gCVars.pCVarShadow->value : 0.0f,
 			gCVars.pCVarDeferredLighting ? gCVars.pCVarDeferredLighting->value : 0.0f,
-			gCVars.pCVarGammaBlend ? gCVars.pCVarGammaBlend->value : 0.0f,
 		};
 		gCVars.pCVarDrawEntities->value = 0;
 		gCVars.pCVarDrawViewModel->value = 0;
 		gCVars.pCVarDrawDynamic->value = 0;
-		if (gCVars.pCVarFXAA)
-			gCVars.pCVarFXAA->value = 0;
 		if (gCVars.pCVarWater)
 			gCVars.pCVarWater->value = 0;
 		if (gCVars.pCVarShadow)
 			gCVars.pCVarShadow->value = 0;
 		if (gCVars.pCVarDeferredLighting)
 			gCVars.pCVarDeferredLighting->value = 0;
-		if (gCVars.pCVarGammaBlend)
-			gCVars.pCVarGammaBlend->value = 1;
 
 		MetaRenderer()->PushRefDef();
 
@@ -390,12 +449,13 @@ void CRadarPanel::RenderRadar()
 		MetaRenderer()->LoadIdentityForProjectionMatrix();
 		//MetaRenderer()->SetupOrthoProjectionMatrix(-1024 / 2, 1024 / 2, -1024 / 2, 1024 / 2, 2048, -2048, true);
 
-		float scale = gCVars.pRadarZoom->value;
+		float zoom = gCVars.pRadarZoom->value;
+		float worldSize = 4096.0f / zoom;
 		MetaRenderer()->SetupOrthoProjectionMatrix(
-			-(4096.0 / scale),
-			(4096.0 / scale),
-			-(4096.0 / scale),
-			(4096.0 / scale),
+			-worldSize,
+			worldSize,
+			-worldSize,
+			worldSize,
 			2048, 
 			-2048,
 			true);
@@ -411,9 +471,8 @@ void CRadarPanel::RenderRadar()
 
 		MetaRenderer()->UploadCameraUBOData(&CameraUBO);
 
-		vec4_t vClearColor = { 0, 0, 0, 1 };
-		MetaRenderer()->ClearColorDepthStencil(vClearColor, 1, 0, STENCIL_MASK_ALL);
-
+		MetaRenderer()->ClearColorDepthStencil(m_vClearColor, 1, 0, STENCIL_MASK_ALL);
+		
 		MetaRenderer()->RenderScene();
 
 		MetaRenderer()->SetDrawClassify(oldDrawClassify);
@@ -425,16 +484,9 @@ void CRadarPanel::RenderRadar()
 		gCVars.pCVarDrawEntities->value = arySaveCvars[0];
 		gCVars.pCVarDrawViewModel->value = arySaveCvars[1];
 		gCVars.pCVarDrawDynamic->value = arySaveCvars[2];
-		if (gCVars.pCVarFXAA)
-			gCVars.pCVarFXAA->value = arySaveCvars[3];
-		if (gCVars.pCVarWater)
-			gCVars.pCVarWater->value = arySaveCvars[4];
-		if (gCVars.pCVarShadow)
-			gCVars.pCVarShadow->value = arySaveCvars[5];
-		if (gCVars.pCVarDeferredLighting)
-			gCVars.pCVarDeferredLighting->value = arySaveCvars[6];
-		if (gCVars.pCVarGammaBlend)
-			gCVars.pCVarGammaBlend->value = arySaveCvars[7];
+		gCVars.pCVarWater->value = arySaveCvars[3];
+		gCVars.pCVarShadow->value = arySaveCvars[4];
+		gCVars.pCVarDeferredLighting->value = arySaveCvars[5];
 
 		MetaRenderer()->EndDebugGroup();
 	}
@@ -452,6 +504,15 @@ void CRadarPanel::SetScale(bool state)
 void CRadarPanel::SetAvatarVisible(bool state)
 {
 	for (auto iter = m_aryPlayerAvatars.begin(); iter != m_aryPlayerAvatars.end(); iter++) {
-		(*iter)->SetVisible(state);
+		if (!state) {
+			(*iter)->SetVisible(false);
+		}
+	}
+}
+
+void CRadarPanel::RefreshAvatars()
+{
+	for (auto iter = m_aryPlayerAvatars.begin(); iter != m_aryPlayerAvatars.end(); iter++) {
+		(*iter)->ClearAvatar();
 	}
 }

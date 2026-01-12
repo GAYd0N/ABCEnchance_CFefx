@@ -53,7 +53,6 @@ using cl_refHookfunc_t = struct{
 	float* (*GetClientColor)			(int clientIndex);
 	void (*EVVectorScale)			(float* pucnangle1, float scale, float* pucnangle2);
 
-	void (__fastcall* TFV_ShowScoreBoard)	(void* pthis);
 	void (__fastcall* TFV_ShowVGUIMenu)		(void* pthis, int dummy, int iVguiMenu);
 
 	void (__fastcall* CClient_SoundEngine_Initialize)(void* pSoundEngine, int);
@@ -65,19 +64,9 @@ using cl_refHookfunc_t = struct{
 	void (*V_PunchAxis)				(int axis, float punch);
 #pragma endregion
 #pragma region Engine
-	void (*CEngineClient_RenderView)				(struct ref_params_s* param, bool bClearColor, bool bDrawViewModel, int iPassIndex);
 	/*(mspriteframe_s *)*/void* (*R_GetSpriteFrame) (/* (msprite_s*) */ void* pSprite, int frame);
-
 	void (*R_NewMap)					();
-
 	model_t* (*CL_GetModelByIndex)		(int index);
-#pragma endregion
-#pragma region VGUI
-	char* (*V_strncpy)(char* a1, const char* a2, size_t a3);
-#pragma endregion
-#pragma region GameUI
-	void* (__fastcall* CBasePanel_ctor)(void* pthis, int dummy);
-	void (__fastcall* CBasePanel_PaintBackground)(void* pthis, int dummy);
 #pragma endregion
 };
 
@@ -115,7 +104,6 @@ using cl_cvars_t = struct{
 
 	cvar_t* pHudEfx;
 
-	cvar_t* pEccoCheckInfo;
 	cvar_t* pEccoEnable;
 
 	cvar_t* pItemHighLight;
@@ -124,8 +112,6 @@ using cl_cvars_t = struct{
 	cvar_t* pItemHighLightAimFOV;
 	cvar_t* pItemHighLightPickup;
 	cvar_t* pItemHighLightName;
-
-	cvar_t* pEccoBuyMenu;
 
 	cvar_t* pGrenadeIndicator;
 	cvar_t* pGrenadeIndicatorRange;
@@ -137,27 +123,18 @@ using cl_cvars_t = struct{
 	cvar_t* pRadarZoom;
 	cvar_t* pRadarAvatar;
 	cvar_t* pRadarAvatarSize;
-	cvar_t* pRadarAvatarScale;
-	cvar_t* pRadarZMin;
-	cvar_t* pRadarZMax;
 
-	cvar_t* pCVarDevOverview;
 	cvar_t* pCVarDrawEntities;
 	cvar_t* pCVarDrawViewModel;
 	cvar_t* pCVarDrawDynamic;
-	cvar_t* pCVarFXAA;
 	cvar_t* pCVarWater;
 	cvar_t* pCVarShadow;
 	cvar_t* pCVarDeferredLighting;
-	cvar_t* pCVarGammaBlend;
 
 	cvar_t* pCVarAutoBunnyJump;
 
 	cvar_t* pCfefxEnable;
 
-#ifdef _DEBUG
-	cvar_t* pCCTV;
-#endif
 	//Defualt CVars
 	cvar_t* pCvarDefaultFOV;
 };

@@ -1,8 +1,4 @@
 #include <algorithm>
-#include <filesystem>
-#include <atomic>
-
-#include "core/library/Task.h"
 #include "core/module/config.h"
 
 #include "interface.h"
@@ -24,7 +20,6 @@
 #include "vgui_controls/ImagePanel.h"
 #include "vgui_controls/FileOpenDialog.h"
 #include "vgui_controls/Menu.h"
-#include "vgui_controls/MenuItem.h"
 #include "vgui_controls/MemoryBitmap.h"
 #include "vgui_controls/GroupBox.h"
 #include "vgui_controls/MessageBox.h"
@@ -44,8 +39,6 @@ extern const char* CVAR_GET_STRING(const char* x);
 extern void CVAR_SET_STRING(const char* x, const char* v);
 extern float CVAR_GET_FLOAT(const char* x);
 extern void CVAR_SET_FLOAT(const char* x, float v);
-extern size_t ScreenWidth();
-extern size_t ScreenHeight();
 extern IGameUIFuncs* GameUIFuncs();
 const char* FAVMODEL_ICON = "#GameUI_ABC_Favorite";
 
@@ -520,7 +513,9 @@ void COptionsAdvanceSubMultiPlay::OnCommand(const char* cmd) {
 		filedialog->Activate();
 		int w, h;
 		filedialog->GetSize(w, h);
-		filedialog->SetPos((ScreenWidth() - w) / 2, (ScreenHeight() - h) / 2);
+		int screen_w, screen_h;
+		vgui::surface()->GetScreenSize(screen_w, screen_h);
+		filedialog->SetPos((screen_w - w) / 2, (screen_h - h) / 2);
 		input()->SetAppModalSurface(filedialog->GetVPanel());
 	}
 }
@@ -821,7 +816,9 @@ void COptionsAdvanceSubOtherOption::OnCommand(const char* cmd) {
 		msgbox->SetProportional(false);
 		int w, h;
 		parent->GetSize(w, h);
-		msgbox->SetPos((ScreenWidth() - w) / 2, (ScreenHeight() - h) / 2);
+		int screen_w, screen_h;
+		vgui::surface()->GetScreenSize(screen_w, screen_h);
+		msgbox->SetPos((screen_w - w) / 2, (screen_h - h) / 2);
 		msgbox->Activate();
 		msgbox->MakePopup();
 		input()->SetAppModalSurface(msgbox->GetVPanel());
