@@ -32,8 +32,6 @@
 #include "core/events/hudevents.h"
 
 #include "core/metahook/MetaRendererCallbacks.h"
-//GL
-#include "glew.h"
 //Base HUD
 #include "utility/util.h"
 #include "hud/Viewport.h"
@@ -267,11 +265,6 @@ void GL_Init(void)
 {
 	//Load interface from Renderer.dll
 	MetaRenderer_Init();
-	auto err = glewInit();
-	if (GLEW_OK != err) {
-		SYS_ERROR("glewInit failed, %s", glewGetErrorString(err));
-		return;
-	}
 	GL_ShaderInit();
 	if (MetaRenderer())
 	{
@@ -363,9 +356,12 @@ void HUD_Init(void)
 	AutoFunc::Init();
 }
 
+r_studio_interface_t** g_pStudioInterface = nullptr;
+
 int HUD_GetStudioModelInterface(int version, struct r_studio_interface_s** ppinterface, struct engine_studio_api_s* pstudio)
 {
 	memcpy(&gEngineStudio, pstudio, sizeof(gEngineStudio));
+	g_pStudioInterface = ppinterface;
 	return gExportfuncs.HUD_GetStudioModelInterface(version, ppinterface, pstudio);
 }
 
@@ -586,6 +582,10 @@ int HUD_AddEntity(int type, struct cl_entity_s* ent, const char* modelname)
 
 int HUD_KeyEvent(int eventcode, int keynum, const char* pszCurrentBinding)
 {
+	if (pszCurrentBinding && !strcmp(pszCurrentBinding, "cancelselect")) {
+		if (eventcode && (keynum == ',' || keynum == '.'))
+			return 0;
+	}
 	return GetBaseViewPort()->KeyInput(eventcode, keynum, pszCurrentBinding) ?
 		gExportfuncs.HUD_Key_Event(eventcode, keynum, pszCurrentBinding) : 0;
 }

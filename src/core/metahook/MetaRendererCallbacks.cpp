@@ -1,6 +1,7 @@
 #include "hud/vgui/radar.h"
 #include "hud/Viewport.h"
 #include "MetaRendererCallbacks.h"
+#include <vgui_controls/ModelViewPanel.h>
 
 CMetaRendererCallbacks g_MetaRendererCallbacks;
 /*
@@ -49,6 +50,8 @@ void CMetaRendererCallbacks::OnGenerateFrameBuffers()
 void CMetaRendererCallbacks::OnPreRenderView()
 {
 	GetBaseViewPort()->GetRadarPanel()->RenderRadar();
+	if (vgui::g_pModelViewPanel)
+		vgui::g_pModelViewPanel->RenderModel();
 }
 
 /*
@@ -80,5 +83,4 @@ void CMetaRendererCallbacks::OnPostRenderViewPost()
 */
 void CMetaRendererCallbacks::OnRenderEndFrame()
 {
-
 }

@@ -68,6 +68,8 @@ public:
 	void SetShadeLight(int light);
 	void SetLightColor(int r, int g, int b);
 	void SetLightOrigin(float x, float y, float z);
+
+	void RenderModel();
 protected:
 	virtual void Paint() override;
 	virtual void ApplySettings(KeyValues* inResourceData) override;
@@ -77,8 +79,17 @@ private:
 	bool m_bAnimate = false;
 	char m_szModel[MAX_PATH] = {};
 
+	int m_iAmbientLight = 32;
+	int m_iShadeLight = 192;
+	int m_iLightColor[3] = {255, 255, 255};
+	float m_flLightOrigin[3] = {0, 0, 0};
+
 	struct cl_entity_s* m_pModelEntity = nullptr;
+	void* m_pImage = nullptr;
+	class ImagePanel* m_pImagePanel = nullptr;
 };
+
+extern ModelViewPanel* g_pModelViewPanel;
 
 } // namespace vgui
 
