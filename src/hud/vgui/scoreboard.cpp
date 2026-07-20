@@ -73,9 +73,11 @@ class CPlayerImage : public IImage
 {
 public:
 	virtual ~CPlayerImage() {
+		*m_pAlive = false;
 		ClearFrame();
 	}
 	void Reset() {
+		++(*m_pRequestGeneration);
 		if (m_pRequest.has_value() && m_pRequest.value() != nullptr)
 			GetHttpClient()->Interrupt(m_pRequest.value());
 		m_pRequest.reset();
@@ -122,17 +124,26 @@ public:
 			const char* url = SteamFriends()->GetProfileItemPropertyString(arg->m_steamID, k_ECommunityProfileItemType_AnimatedAvatar, k_ECommunityProfileItemProperty_ImageSmall);
 			if (url && V_strlen(url) > 0) {
 				if (!m_pRequest.has_value()) {
+					auto alive = m_pAlive;
+					auto generation = m_pRequestGeneration;
+					unsigned int requestGeneration = *generation;
 					ClearFrame();
-					m_pRequest = GetHttpClient()->Fetch(url, UtilHTTPMethod::Get)->OnRespond([](IUtilHTTPResponse* rep, CPlayerImage* pthis) {
+					m_pRequest = GetHttpClient()->Fetch(url, UtilHTTPMethod::Get)->OnRespond([](IUtilHTTPResponse* rep, CPlayerImage* pthis, std::shared_ptr<bool> alive, std::shared_ptr<unsigned int> generation, unsigned int requestGeneration) {
+						if (!*alive || *generation != requestGeneration)
+							return;
+						auto payload = rep->GetPayload();
+						std::string payloadCopy(reinterpret_cast<const char*>(payload->GetBytes()), payload->GetLength());
 						using gif = struct {
 							byte* bgra;
 							size_t w;
 							size_t h;
 							size_t frametime;
 						};
-						GetTaskManager()->Add<std::shared_ptr<std::vector<gif*>>>([](const char* data, size_t length) {
+						GetTaskManager()->Add<std::shared_ptr<std::vector<gif*>>>([](std::string data) {
 							std::shared_ptr<std::vector<gif*>> pgif = std::make_shared<std::vector<gif*>>();
-							FIMEMORY* mem = FreeImage_OpenMemory(reinterpret_cast<BYTE*>(const_cast<char*>(data)), length);
+							FIMEMORY* mem = FreeImage_OpenMemory(reinterpret_cast<BYTE*>(data.data()), data.size());
+							if (!mem)
+								return pgif;
 							FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromMemory(mem);
 							if (format == FIF_GIF) {
 								FIMULTIBITMAP* multiBitmap = FreeImage_LoadMultiBitmapFromMemory(format, mem, GIF_PLAYBACK);
@@ -148,6 +159,10 @@ public:
 										size_t width = FreeImage_GetWidth(dib);
 										size_t height = FreeImage_GetHeight(dib);
 										FITAG* tag = nullptr;
+										if (!bits || width == 0 || height == 0 || width > 512 || height > 512) {
+											FreeImage_UnlockPage(multiBitmap, dib, false);
+											continue;
+										}
 
 										gif* image = new gif();
 										image->bgra = new byte[width * height * 4];
@@ -167,6 +182,7 @@ public:
 										}
 										image->w = width;
 										image->h = height;
+										image->frametime = 100;
 										if (FreeImage_GetMetadata(FIMD_ANIMATION, dib, "FrameTime", &tag))
 											image->frametime = *(unsigned int*)FreeImage_GetTagValue(tag);
 										pgif->push_back(image);
@@ -177,7 +193,15 @@ public:
 							}
 							FreeImage_CloseMemory(mem);
 							return pgif;
-						}, rep->GetPayload()->GetBytes(), rep->GetPayload()->GetLength())->ContinueWith([](std::shared_ptr<std::vector<gif*>> gifdata, CPlayerImage* pthis) {
+						}, std::move(payloadCopy))->ContinueWith([](std::shared_ptr<std::vector<gif*>> gifdata, CPlayerImage* pthis, std::shared_ptr<bool> alive, std::shared_ptr<unsigned int> generation, unsigned int requestGeneration) {
+							if (!*alive || *generation != requestGeneration) {
+								for (size_t i = 0; i < gifdata->size(); i++) {
+									gif* image = gifdata->at(i);
+									delete[] image->bgra;
+									delete image;
+								}
+								return;
+							}
 							for (size_t i = 0; i < gifdata->size(); i++) {
 								gif* image = gifdata->at(i);
 								pthis->SetFrameTime(image->frametime);
@@ -186,9 +210,9 @@ public:
 								delete image;
 							}
 							gifdata.reset();
-						}, pthis)->Start();
+						}, pthis, alive, generation, requestGeneration)->Start();
 							pthis->m_pRequest = nullptr;
-						}, this)->Start();
+						}, this, alive, generation, requestGeneration)->Start();
 					m_bIsAnimate = true;
 				}
 				m_bRequestedAnimatedAvatars = true;
@@ -325,6 +349,8 @@ private:
 	bool m_bIsAnimate = false;
 	bool m_bRequestedAnimatedAvatars = false;
 	std::optional<CHttpClientItem*> m_pRequest = nullptr;
+	std::shared_ptr<bool> m_pAlive = std::make_shared<bool>(true);
+	std::shared_ptr<unsigned int> m_pRequestGeneration = std::make_shared<unsigned int>(0);
 
 	std::vector<IImage_HL25*> m_aryAnimatedAvatars;
 	size_t m_iCurrentImage = 0;
@@ -535,7 +561,7 @@ void CScorePanel::ApplySchemeSettings(IScheme* pScheme)
 }
 
 void CScorePanel::OnThink(){
-	if (m_iKillerIndex != 0 && m_PlayerData[m_iKillerIndex].nItemID != -1)
+	if (m_iKillerIndex > 0 && m_iKillerIndex <= SC_MAX_PLAYERS && m_PlayerData[m_iKillerIndex].nItemID != -1)
 		UpdateClientInfo(m_iKillerIndex);
 	if (m_flLastUpdateTime + UPDATE_PERIOD <= gEngfuncs.GetAbsoluteTime())
 		UpdateAllClients();
@@ -650,7 +676,10 @@ void CScorePanel::RefreshItems()
 	// Assign player teams, calculate team scores
 	for (int i = 1; i <= SC_MAX_PLAYERS; i++)
 	{
-		PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i)->Update();
+		PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i);
+		if (!pi)
+			continue;
+		pi->Update();
 		if (!pi->IsValid())
 			continue;
 		PlayerData& pd = m_PlayerData[i];
@@ -679,6 +708,8 @@ void CScorePanel::RefreshItems()
 		if (td.iPlayerCount == 0)
 			continue;
 		TeamInfo* ti = gTeamRes.GetTeamInfo(td.nID);
+		if (!ti)
+			continue;
 		if (ti->IsScoreOverriden())
 		{
 			td.iFrags = ti->GetFrags();
@@ -692,6 +723,8 @@ void CScorePanel::RefreshItems()
 	std::sort(m_SortedTeamIDs.begin(), m_SortedTeamIDs.begin() + iTeamCount, [&](TEAM_ID ilhs, TEAM_ID irhs) {
 		int idxl = gTeamRes.GetTeamIndexByTeamID(ilhs);
 		int idxr = gTeamRes.GetTeamIndexByTeamID(irhs);
+		if (idxl < 0 || idxr < 0)
+			return idxl > idxr;
 		const TeamData& lhs = m_TeamData[idxl];
 		const TeamData& rhs = m_TeamData[idxr];
 
@@ -823,7 +856,7 @@ void CScorePanel::UpdateAllClients()
 void CScorePanel::UpdateClientInfo(int client)
 {
 	PlayerInfo* pi = gPlayerRes.GetPlayerInfo(client);
-	if (!pi->IsValid())
+	if (!pi || !pi->IsValid())
 		return;
 	PlayerData& pd = m_PlayerData[client];
 	if (pi->m_bIsConnected && !pd.bIsConnected){
@@ -995,7 +1028,7 @@ void CScorePanel::UpdateScoresAndCounts(){
 	for (int i = 1; i <= SC_MAX_PLAYERS; i++){
 		PlayerInfo* pi = gPlayerRes.GetPlayerInfo(i);
 
-		if (!pi->IsValid())
+		if (!pi || !pi->IsValid())
 			continue;
 		iPlayerCount++;
 
@@ -1046,6 +1079,8 @@ void CScorePanel::UpdateScoresAndCounts(){
 		if (td.iPlayerCount == 0)
 			continue;
 		TeamInfo* ti = gTeamRes.GetTeamInfo(td.nID);
+		if (!ti)
+			continue;
 		if (ti->IsScoreOverriden()){
 			td.iFrags = ti->GetFrags();
 			td.iDeaths = ti->GetDeaths();
@@ -1116,7 +1151,10 @@ void CScorePanel::OpenPlayerMenu(int itemID){
 		return;
 
 	// SteamID64
-	m_MenuData.nSteamID64 = gPlayerRes.GetPlayerInfo(m_MenuData.nClient)->m_pSteamId.ConvertToUint64();
+	PlayerInfo* menuPlayer = gPlayerRes.GetPlayerInfo(m_MenuData.nClient);
+	if (!menuPlayer)
+		return;
+	m_MenuData.nSteamID64 = menuPlayer->m_pSteamId.ConvertToUint64();
 	if (m_MenuData.nSteamID64 != 0){
 		m_pPlayerMenu->SetItemEnabled(m_MenuData.nProfilePageItemID, true);
 		m_pPlayerMenu->SetItemEnabled(m_MenuData.nProfileUrlItemID, true);
@@ -1151,7 +1189,7 @@ void CScorePanel::OnPlayerMenuCommand(MenuAction command)
 {
 	PlayerInfo* pi = gPlayerRes.GetPlayerInfo(m_MenuData.nClient);
 
-	if (!pi->IsValid())
+	if (!pi || !pi->IsValid())
 		return;
 
 	switch (command)

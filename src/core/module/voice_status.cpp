@@ -141,19 +141,19 @@ void CVoiceStatus::UpdateServerState(bool bForce){
 		ServerCmd(str);
 		if(CVAR_GET_FLOAT("voice_clientdebug")){
 			char msg[256];
-			sprintf(msg, "CVoiceStatus::UpdateServerState: Sending '%s'\n", str);
+			snprintf(msg, sizeof(msg), "CVoiceStatus::UpdateServerState: Sending '%s'\n", str);
 			gEngfuncs.pfnConsolePrint(msg);
 		}
 	}
 	char str[2048];
-	sprintf(str, "vban");
+	snprintf(str, sizeof(str), "vban");
 	bool bChange = false;
 
 	unsigned long serverBanMask = 0;
 	unsigned long banMask = 0;
 	for (unsigned long i = 1; i < 33; i++) {
 		PlayerInfo* info = gPlayerRes.GetPlayerInfo(i);
-		if (!info->IsValid())
+		if (!info || !info->IsValid())
 			continue;
 		if (m_BanMgr.GetPlayerBan(info->m_pSteamId.ConvertToUint64()))
 			banMask |= 1 << (i - 1);
@@ -163,13 +163,13 @@ void CVoiceStatus::UpdateServerState(bool bForce){
 		bChange = true;
 	// Ok, the server needs to be updated.
 	char numStr[512];
-	sprintf(numStr, " %lx", banMask);
-	strcat(str, numStr);
+	snprintf(numStr, sizeof(numStr), " %lx", banMask);
+	strncat(str, numStr, sizeof(str) - strlen(str) - 1);
 
 	if(bChange || bForce){
 		if(CVAR_GET_FLOAT("voice_clientdebug")){
 			char msg[256];
-			sprintf(msg, "CVoiceStatus::UpdateServerState: Sending '%s'\n", str);
+			snprintf(msg, sizeof(msg), "CVoiceStatus::UpdateServerState: Sending '%s'\n", str);
 			gEngfuncs.pfnConsolePrint(msg);
 		}
 		gEngfuncs.pfnServerCmdUnreliable(str);	// Tell the server..
@@ -183,17 +183,21 @@ void CVoiceStatus::HandleVoiceMaskMsg(int iSize, void *pbuf){
 	NetworkMessageReader msg( pbuf, iSize );
 	unsigned long audiable = static_cast<unsigned long>(msg.readLong());
 	unsigned long serverbanned = static_cast<unsigned long>(msg.readLong());
+	if (!msg.readOK())
+		return;
 	m_AudiblePlayers = CPlayerBitVec(audiable);
 	m_ServerBannedPlayers = CPlayerBitVec(serverbanned);
 	if(CVAR_GET_FLOAT("voice_clientdebug")){
 		char str[256];
 		gEngfuncs.pfnConsolePrint("CVoiceStatus::HandleVoiceMaskMsg\n");
-		sprintf(str, "    - m_AudiblePlayers = %s\n", m_AudiblePlayers.to_string().c_str());
+		snprintf(str, sizeof(str), "    - m_AudiblePlayers = %s\n", m_AudiblePlayers.to_string().c_str());
 		gEngfuncs.pfnConsolePrint(str);
-		sprintf(str, "    - m_ServerBannedPlayers = %s\n", m_ServerBannedPlayers.to_string().c_str());
+		snprintf(str, sizeof(str), "    - m_ServerBannedPlayers = %s\n", m_ServerBannedPlayers.to_string().c_str());
 		gEngfuncs.pfnConsolePrint(str);
 	}
 	m_bServerModEnable = msg.readByte();
+	if (!msg.readOK())
+		m_bServerModEnable = false;
 }
 void CVoiceStatus::HandleReqStateMsg(int iSize, void *pbuf){
 	if(CVAR_GET_FLOAT("voice_clientdebug"))
@@ -222,7 +226,7 @@ bool CVoiceStatus::IsInSquelchMode() const{
 //-----------------------------------------------------------------------------
 bool CVoiceStatus::IsPlayerBlocked(int iPlayer){
 	PlayerInfo* info = gPlayerRes.GetPlayerInfo(iPlayer);
-	if (!info->IsValid())
+	if (!info || !info->IsValid())
 		return false;
 	return m_BanMgr.GetPlayerBan(info->m_pSteamId.ConvertToUint64());
 }
@@ -245,7 +249,7 @@ void CVoiceStatus::SetPlayerBlockedState(int iPlayer, bool blocked){
 	if (CVAR_GET_FLOAT("voice_clientdebug"))
 		gEngfuncs.pfnConsolePrint( "CVoiceStatus::SetPlayerBlockedState part 1\n" );
 	PlayerInfo* info = gPlayerRes.GetPlayerInfo(iPlayer);
-	if (!info->IsValid())
+	if (!info || !info->IsValid())
 		return;
 	if (CVAR_GET_FLOAT("voice_clientdebug"))
 		gEngfuncs.pfnConsolePrint( "CVoiceStatus::SetPlayerBlockedState part 2\n" );
@@ -253,7 +257,7 @@ void CVoiceStatus::SetPlayerBlockedState(int iPlayer, bool blocked){
 	// Squelch or (try to) unsquelch this player.
 	if (CVAR_GET_FLOAT("voice_clientdebug")){
 		char str[256];
-		sprintf(str, "CVoiceStatus::SetPlayerBlockedState: setting player %llu ban to %d\n", info->m_pSteamId.ConvertToUint64(), blocked);
+		snprintf(str, sizeof(str), "CVoiceStatus::SetPlayerBlockedState: setting player %llu ban to %d\n", info->m_pSteamId.ConvertToUint64(), blocked);
 		gEngfuncs.pfnConsolePrint(str);
 	}
 	m_BanMgr.SetPlayerBan( info->m_pSteamId.ConvertToUint64(), blocked);

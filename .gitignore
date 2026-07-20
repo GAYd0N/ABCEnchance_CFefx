@@ -41,6 +41,7 @@
 
 # Debug ang Release
 /.vs
+/.codegraph
 /Build/*.dll
 /Debug
 /Debug-Netease
@@ -52,6 +53,7 @@
 /ABCEnchanceInstaller/bin
 /ABCEnchanceInstaller/obj
 /ABCEnchanceInstaller/ABCEnchanceInstaller
+
 /src/Header/Utility/NeteaseApi.h
 /src/Source/Utility/NeteaseApi.cpp
 /src/Header/NeteaseApi.h
