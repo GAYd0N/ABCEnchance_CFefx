@@ -2,6 +2,7 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommandArguments>$(MetaHookLaunchCommnand)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>-game svencoop|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommandArgumentsHistory>-game svencoop|</LocalDebuggerCommandArgumentsHistory>

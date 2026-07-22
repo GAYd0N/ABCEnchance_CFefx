@@ -1,11 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ABCEnchance", "ABCEnchance.vcxproj", "{FBF9CAF6-8DED-4EB0-8E7B-18294607C5C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABCEnchanceInstaller", "ABCEnchanceInstaller\ABCEnchanceInstaller.csproj", "{54D0AC85-E091-4E4C-98A8-F653DEB0E413}"
+EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "WorkBuddy", "C:\Program Files\WorkBuddy\WorkBuddy.exe", "{381B3630-3BDB-F18C-C16A-C57A472792B1}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Program Files\WorkBuddy\WorkBuddy.exe
+		RemoteMachine = DESKTOP-AS2N5VF
+		StartingDirectory = C:\Program Files\WorkBuddy
+		Environment = 默认值
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+		IORedirection = Auto
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +52,12 @@ Global
 		{54D0AC85-E091-4E4C-98A8-F653DEB0E413}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54D0AC85-E091-4E4C-98A8-F653DEB0E413}.Release|Any CPU.Build.0 = Release|Any CPU
 		{54D0AC85-E091-4E4C-98A8-F653DEB0E413}.Release|Win32.ActiveCfg = Release|Any CPU
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Debug|Any CPU.ActiveCfg = Release|x64
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Debug|Win32.ActiveCfg = Release|x64
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Release_AVX2|Any CPU.ActiveCfg = Release|x64
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Release_AVX2|Win32.ActiveCfg = Release|x64
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Release|Any CPU.ActiveCfg = Release|x64
+		{381B3630-3BDB-F18C-C16A-C57A472792B1}.Release|Win32.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

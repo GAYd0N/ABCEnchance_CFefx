@@ -257,21 +257,13 @@ void CCfefxPanel::ResetScoreEffect()
 	if (!m_pScoreEffect || !m_pScoreMark)
 		return;
 
-	if (m_pScoreEffect->GetAlpha() != 0 || 
-		m_pScoreEffect->GetXPos() != m_vecScoreEffectPos.x ||
-		m_pScoreMark->GetAlpha() != 0 ||
-		m_pScoreMark->GetXPos() != m_vecScoreMarkPos.x)
-	{
-		m_pScoreMark->SetAlpha(0);
-		m_pScoreMark->SetBounds(m_vecScoreMarkPos.x, m_vecScoreMarkPos.y, m_vecScoreMarkSize.x, m_vecScoreMarkSize.y);
+	vgui::GetAnimationController()->StopAnimationSequence(this, "ScoreMarkAnim");
 
-		m_pScoreEffect->SetAlpha(0);
-		m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
+	m_pScoreMark->SetAlpha(0);
+	m_pScoreMark->SetBounds(m_vecScoreMarkPos.x, m_vecScoreMarkPos.y, m_vecScoreMarkSize.x, m_vecScoreMarkSize.y);
 
-		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreEffect);
-		vgui::GetAnimationController()->CancelAnimationsForPanel(m_pScoreMark);
-
-	}
+	m_pScoreEffect->SetAlpha(0);
+	m_pScoreEffect->SetBounds(m_vecScoreEffectPos.x, m_vecScoreEffectPos.y, m_vecScoreEffectSize.x, m_vecScoreEffectSize.y);
 }
 
 void CCfefxPanel::ShowPanel(bool state) {
